@@ -34,13 +34,13 @@ AI PROMPT:
 Newest on _bottom_:
 
 Tue. 3 Sept. 2024:
-1. [ ] Create a "test_paths" dir with a bunch of long filenames and directories. 
-    1. [ ] have a script to auto-generate it. 
-1. [ ] Get the current dir of the script in order to have access to relative dirs. 
+1. [x] Create a "test_paths" dir with a bunch of long filenames and directories. 
+    1. [x] have a script to auto-generate it. 
+1. [x] Get the current dir of the script in order to have access to relative dirs. 
 1. [ ] make arg1 the dir to shorten. 
-    1. [ ] actually, use `argparse` so we can have automatic dry-run mode, and `-F` mode for 'F'orce the changes.
+    1. [x] actually, use `argparse` so we can have automatic dry-run mode, and `-F` mode for 'F'orce the changes.
     1. [ ] have the target dir where everything gets copied to be at the same level as the passed-in dir, but named "some_dir_shortened".
-1. [ ] save all paths in that passed-in argument
+1. [ ] save (by copying into a backup) all paths in that passed-in argument
 1. [ ] dry-run shorten all paths in that passed-in argument
 1. [ ] when done, print out the result. 
 1. [ ] in the real scenario (non-dry-run, via `-F`), copy the target dir to a new location, then apply all of the shortenings

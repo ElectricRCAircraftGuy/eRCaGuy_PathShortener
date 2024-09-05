@@ -16,6 +16,7 @@ import subprocess
 import sys
 
 
+# See my answer: https://stackoverflow.com/a/74800814/4561887
 FULL_PATH_TO_SCRIPT = os.path.abspath(__file__)
 SCRIPT_DIRECTORY = str(os.path.dirname(FULL_PATH_TO_SCRIPT))
 
