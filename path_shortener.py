@@ -46,6 +46,7 @@ def print_global_variables(module):
 
 def main():
     print_global_variables(config)
+    paths_list = get_paths("")
 
 
 if __name__ == "__main__":
