@@ -37,10 +37,34 @@ def generate_human_readable_name(num_words):
     return name
 
 
-def create_long_name_structure(base_dir, num_folders, num_files_per_folder, num_words):
+def create_long_name_structure(base_dir, num_folders, num_files_per_folder, num_words, folder_depth):
     """
     Create a directory structure with long human-readable folder and file names.
     """
+    def create_nested_dirs(current_dir, current_depth):
+        if current_depth > folder_depth:
+            return
+
+        for _ in range(num_folders):
+            # Generate a human-readable folder name
+            folder_name = generate_human_readable_name(num_words)
+            folder_path = os.path.join(current_dir, folder_name)
+            os.makedirs(folder_path, exist_ok=True)
+
+            # Create files in the current directory
+            for _ in range(num_files_per_folder):
+                # Generate a human-readable file name
+                file_name = generate_human_readable_name(num_words) + ".txt"
+                file_path = os.path.join(folder_path, file_name)
+                with open(file_path, 'w') as f:
+                    f.write("This is a test file.")
+
+            # Recursively create nested directories
+            create_nested_dirs(folder_path, current_depth + 1)
+
+    # Start creating the directory structure from the base directory
+    create_nested_dirs(base_dir, 1)
+
     
     # Create base directory
     os.makedirs(base_dir, exist_ok=True)
@@ -86,11 +110,12 @@ def main():
         print(f"Moving existing test directory to the recycle bin: {base_dir}")
         move_to_recycle_bin(base_dir)
 
-    num_folders = 5
-    num_files_per_folder = 5
+    num_folders = 1
+    num_files_per_folder = 3
     num_words = 5  # Number of words to combine for folder and file names
+    folder_depth = 5  # Depth of nested folders
 
-    create_long_name_structure(base_dir, num_folders, num_files_per_folder, num_words)
+    create_long_name_structure(base_dir, num_folders, num_files_per_folder, num_words, folder_depth)
     print(f"Test directory structure created at: {base_dir}\n")
 
     # Obtain and store as text the tree of the directory structure
