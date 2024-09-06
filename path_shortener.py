@@ -51,6 +51,24 @@ SCRIPT_DIRECTORY = str(os.path.dirname(FULL_PATH_TO_SCRIPT))
 
 # global_vars = Global_vars() 
 
+
+# class PathData:
+#     def __init__(self):
+#         pass
+
+#     # intended data to be stored herein
+#     self.max_path
+
+class Paths:
+    def __init__(self):
+        pass
+
+    # intended data to be stored herein
+    self.original_path = None
+    self.fixed_path = None  # the Windows-friendly path with no illegal chars in Windows
+    self.shortened_path = None
+
+
 def print_global_variables(module):
     """
     Print all global variables in a module.
@@ -94,11 +112,16 @@ def print_global_variables(module):
 #     return None
 
 
-# def add_to_dict(dict, key, value):
-#     if key not in dict:
-#         dict[key] = value
-#     else:
-#         print(f"Key '{key}' already exists with value '{dict[key]}'")
+def add_to_dict(dict, key, value):
+    """
+    Add a key-value pair to a dictionary if the key does not already exist.
+    - Note: for sets, this is not necessary. Simply use `my_set.add(item)` instead. 
+    """
+    if key not in dict:
+        dict[key] = value
+    else:
+        # print(f"Key '{key}' already exists with value '{dict[key]}'")
+        pass
 
 
 # def add_to_set(set, item):
@@ -113,23 +136,23 @@ def walk_directory(path):
     Walk a directory and return all paths in a set.
     """
     
-    all_paths_set = set()
+    all_paths_dict = {}
 
     for root_dir, subdirs, files in os.walk(path):
         # print(f"Root dir: {root_dir}\t(Len: {len(root_dir)})")
-        all_paths_set.add(root_dir)
+        add_to_dict(all_paths_dict, root_dir, None)
         
         for dirname in subdirs:
             subdir_path = os.path.join(root_dir, dirname)
             # print(f"  Subdir: {subdir_path}\t(Len: {len(subdir_path)})")
-            all_paths_set.add(subdir_path)
+            add_to_dict(all_paths_dict, subdir_path, None)
 
         for filename in files:
             file_path = os.path.join(root_dir, filename)
             # print(f"  File:   {file_path}\t(Len: {len(file_path)})")
-            all_paths_set.add(file_path)
+            add_to_dict(all_paths_dict, file_path, None)
 
-    return all_paths_set
+    return all_paths_dict
 
 
 def parse_args():
@@ -194,8 +217,8 @@ def main():
     args = parse_args()
     print_global_variables(config)
 
-    all_paths_set = walk_directory(args.base_dir)
-    pprint.pprint(all_paths_set)
+    all_paths_dict = walk_directory(args.base_dir)
+    pprint.pprint(all_paths_dict)
 
 
 
