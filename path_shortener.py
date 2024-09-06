@@ -4,8 +4,10 @@
 Shorten long paths to make them accessible on Windows.
 
 Example usage:
+
 ```bash
-# General example
+# General example 
+# <======= RUN THIS ========
 ./path_shortener.py test_paths
 
 # Help menu
@@ -36,6 +38,10 @@ import textwrap
 # See my answer: https://stackoverflow.com/a/74800814/4561887
 FULL_PATH_TO_SCRIPT = os.path.abspath(__file__)
 SCRIPT_DIRECTORY = str(os.path.dirname(FULL_PATH_TO_SCRIPT))
+
+
+class global_vars: #/////////////
+    pass
 
 
 def print_global_variables(module):
@@ -82,25 +88,25 @@ def print_global_variables(module):
 
 def walk_directory(path):
     """
-    Walk a directory and return all paths. ///////
+    Walk a directory and return all paths. ///////////
     """
-
-    for dirpath, dirnames, filenames in os.walk('test_paths'):
+    
+    for root_dir, subdirs, files in os.walk(path):
         # Measure the path length of the current directory
-        dirpath_length = len(dirpath)
-        print(f"Directory: {dirpath} (Length: {dirpath_length})")
+        root_dir_len = len(root_dir)
+        print(f"Root dir: {root_dir}\t(Len: {root_dir_len})")
         
         # Measure the path length of each subdirectory
-        for dirname in dirnames:
-            subdir_path = os.path.join(dirpath, dirname)
-            subdir_path_length = len(subdir_path)
-            print(f"  Subdirectory: {subdir_path} (Length: {subdir_path_length})")
+        for dirname in subdirs:
+            subdir_path = os.path.join(root_dir, dirname)
+            subdir_path_len = len(subdir_path)
+            print(f"  Subdir: {subdir_path}\t(Len: {subdir_path_len})")
         
         # Measure the path length of each file
-        for filename in filenames:
-            file_path = os.path.join(dirpath, filename)
-            file_path_length = len(file_path)
-            print(f"  File: {file_path} (Length: {file_path_length})")
+        for filename in files:
+            file_path = os.path.join(root_dir, filename)
+            file_path_len = len(file_path)
+            print(f"  File:   {file_path}\t(Len: {file_path_len})")
 
 
 
@@ -117,7 +123,7 @@ def parse_args():
     # `action="store_true"` means that if the flag is present, the value will be set to `True`. 
     # Otherwise, it will be `False`.
     parser.add_argument("-F", action="store_true", help="Force the run to NOT be a dry run")
-    parser.add_argument("directory_path", type=str, help="Path to directory to operate on")
+    parser.add_argument("dir", type=str, help="Path to directory to operate on")
 
     # Parse arguments; note: this automatically exits the program here if the arguments are invalid
     # or if the user requested the help menu.
@@ -126,7 +132,40 @@ def parse_args():
     if args.F:
         print("Force flag is set.")
 
-    print(f"Directory path: {args.directory_path}\n")
+    args.parent_dir = os.path.dirname(args.dir)
+
+    # is parent_dir empty?
+    if not args.parent_dir:
+        args.parent_dir = "."
+
+    args.base_dir = os.path.basename(args.dir)
+
+    print(f"dir:        {args.dir}")
+    print(f"parent_dir: {args.parent_dir}")
+    print(f"base_dir:   {args.base_dir}")
+    
+    # Check if the directory exists, if it is not a dir, and if there are permission errors
+    if not os.path.exists(args.dir):
+        print("Error: directory not found.")
+        exit(1)
+    elif not os.path.isdir(args.dir):
+        print("Error: path is not a directory.")
+        exit(1)
+    elif not os.access(args.dir, os.R_OK):
+        print("Error: read permission denied.")
+        exit(1)
+
+    # Ensure we can execute (cd into) and write to the parent directory
+    if not os.access(args.parent_dir, os.X_OK):
+        print("Error: execute permission denied, so we cannot 'cd' into the parent dir.")
+        exit(1)
+    elif not os.access(args.parent_dir, os.W_OK):
+        print("Error: write permission denied in the parent dir.")
+        exit(1)
+
+    os.chdir(args.parent_dir)
+
+    print()
 
     return args
 
@@ -135,9 +174,11 @@ def main():
     args = parse_args()
     print_global_variables(config)
 
+    walk_directory(args.base_dir)
+
+
     # Get paths and perform operations
-    # paths_list = get_paths(args.directory_path)
-    paths_list = walk_directory(args.directory_path)
+    # paths_list = get_paths(args.dir)
     # print(paths_list)
 
 

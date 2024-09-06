@@ -112,7 +112,7 @@ def main():
     num_files_per_folder = 3
     num_empty_dirs_per_folder = 2
     num_words = 5  # Number of words to combine for folder and file names
-    folder_depth = 6  # Depth of nested folders
+    folder_depth = 8  # Depth of nested folders
     create_long_name_structure(base_dir, num_folders, num_files_per_folder, 
                                num_empty_dirs_per_folder, num_words, folder_depth)
 
