@@ -2,6 +2,22 @@
 
 """
 Shorten long paths to make them accessible on Windows.
+
+Example usage:
+```bash
+# General example
+./path_shortener.py test_paths
+
+# Help menu
+./path_shortener.py -h
+
+# **Dry-run** the script on a directory
+./path_shortener.py /path/to/directory
+
+# Actually run the script on a directory (without the `-F` "force" flag, it will be a dry-run)
+./path_shortener.py -F /path/to/directory
+```
+
 """
 
 # Local imports
@@ -50,13 +66,44 @@ def print_global_variables(module):
         value = getattr(module, name)
         print(f"  {name}: {value}")
 
+    print()
 
-def get_paths(path):
+
+# def get_paths(path):
+#     """
+#     Obtain all paths in the directory `path`. 
+#     """
+
+#     if os.path.isdir(path):
+#         paths = [os.path.join(path, f) for f in os.listdir(path)]
+#         return paths
+    
+#     return None
+
+def walk_directory(path):
     """
-    Placeholder function to simulate getting paths.
+    Walk a directory and return all paths. ///////
     """
-    # Implement your logic to get paths here
-    return [path]
+
+    for dirpath, dirnames, filenames in os.walk('test_paths'):
+        # Measure the path length of the current directory
+        dirpath_length = len(dirpath)
+        print(f"Directory: {dirpath} (Length: {dirpath_length})")
+        
+        # Measure the path length of each subdirectory
+        for dirname in dirnames:
+            subdir_path = os.path.join(dirpath, dirname)
+            subdir_path_length = len(subdir_path)
+            print(f"  Subdirectory: {subdir_path} (Length: {subdir_path_length})")
+        
+        # Measure the path length of each file
+        for filename in filenames:
+            file_path = os.path.join(dirpath, filename)
+            file_path_length = len(file_path)
+            print(f"  File: {file_path} (Length: {file_path_length})")
+
+
+
 
 
 def parse_args():
@@ -72,11 +119,14 @@ def parse_args():
     parser.add_argument("-F", action="store_true", help="Force the run to NOT be a dry run")
     parser.add_argument("directory_path", type=str, help="Path to directory to operate on")
 
-    # Parse arguments
+    # Parse arguments; note: this automatically exits the program here if the arguments are invalid
+    # or if the user requested the help menu.
     args = parser.parse_args()
 
     if args.F:
         print("Force flag is set.")
+
+    print(f"Directory path: {args.directory_path}\n")
 
     return args
 
@@ -86,8 +136,10 @@ def main():
     print_global_variables(config)
 
     # Get paths and perform operations
-    paths_list = get_paths(args.directory_path)
-    print(f"Paths to operate on: {paths_list}")
+    # paths_list = get_paths(args.directory_path)
+    paths_list = walk_directory(args.directory_path)
+    # print(paths_list)
+
 
 
 if __name__ == "__main__":

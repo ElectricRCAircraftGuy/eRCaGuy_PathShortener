@@ -40,6 +40,8 @@ Tue. 3 Sept. 2024:
 1. [ ] make arg1 the dir to shorten. 
     1. [x] actually, use `argparse` so we can have automatic dry-run mode, and `-F` mode for 'F'orce the changes.
     1. [ ] have the target dir where everything gets copied to be at the same level as the passed-in dir, but named "some_dir_shortened".
+1. [ ] step 1: remove illegal chars in Windows from all paths
+    1. [ ] to test this, add a bunch of illegal chars into the test_paths generator too
 1. [ ] save (by copying into a backup) all paths in that passed-in argument
 1. [ ] dry-run shorten all paths in that passed-in argument
 1. [ ] when done, print out the result. 
