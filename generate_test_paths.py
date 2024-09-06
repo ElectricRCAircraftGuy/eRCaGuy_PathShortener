@@ -38,11 +38,19 @@ def generate_human_readable_name(num_words):
     return name
 
 
-def create_long_name_structure(base_dir, num_folders, num_files_per_folder, num_words, folder_depth):
+def create_long_name_structure(
+        base_dir, 
+        num_folders, 
+        num_files_per_folder, 
+        num_empty_dirs_per_folder, 
+        num_words, 
+        folder_depth
+    ):
     """
     Create a directory structure with long human-readable folder and file names.
     """
     def create_nested_dirs(current_dir, current_depth):
+        # Base case to exit recursion
         if current_depth > folder_depth:
             return
 
@@ -60,28 +68,17 @@ def create_long_name_structure(base_dir, num_folders, num_files_per_folder, num_
                 with open(file_path, 'w') as f:
                     f.write("This is a test file.")
 
+            # Make empty dirs in each folder too
+            for _ in range(num_empty_dirs_per_folder):
+                empty_dir_name = generate_human_readable_name(num_words)
+                empty_dir_path = os.path.join(folder_path, empty_dir_name)
+                os.makedirs(empty_dir_path, exist_ok=True)
+
             # Recursively create nested directories
             create_nested_dirs(folder_path, current_depth + 1)
 
     # Start creating the directory structure from the base directory
     create_nested_dirs(base_dir, 1)
-
-    
-    # Create base directory
-    os.makedirs(base_dir, exist_ok=True)
-
-    for _ in range(num_folders):
-        # Generate a human-readable folder name
-        folder_name = generate_human_readable_name(num_words)
-        folder_path = os.path.join(base_dir, folder_name)
-        os.makedirs(folder_path, exist_ok=True)
-
-        for _ in range(num_files_per_folder):
-            # Generate a human-readable file name
-            file_name = generate_human_readable_name(num_words) + ".txt"
-            file_path = os.path.join(folder_path, file_name)
-            with open(file_path, 'w') as f:
-                f.write("This is a test file.")
 
 
 def move_to_recycle_bin(src_path):
@@ -113,10 +110,12 @@ def main():
 
     num_folders = 1
     num_files_per_folder = 3
+    num_empty_dirs_per_folder = 2
     num_words = 5  # Number of words to combine for folder and file names
-    folder_depth = 5  # Depth of nested folders
+    folder_depth = 6  # Depth of nested folders
+    create_long_name_structure(base_dir, num_folders, num_files_per_folder, 
+                               num_empty_dirs_per_folder, num_words, folder_depth)
 
-    create_long_name_structure(base_dir, num_folders, num_files_per_folder, num_words, folder_depth)
     print(f"Test directory structure created at: {base_dir}\n")
 
     # Obtain and store as text the tree of the directory structure
