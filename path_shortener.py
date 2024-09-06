@@ -32,6 +32,7 @@ import config
 import argparse
 import inspect 
 import os
+import pprint
 import textwrap
 
 
@@ -40,9 +41,15 @@ FULL_PATH_TO_SCRIPT = os.path.abspath(__file__)
 SCRIPT_DIRECTORY = str(os.path.dirname(FULL_PATH_TO_SCRIPT))
 
 
-class global_vars: #/////////////
-    pass
+# /////////
+# class Global_vars:
+#     """
+#     Global variables.
+#     See my answer: https://stackoverflow.com/a/77161026/4561887
+#     """
+#     pass
 
+# global_vars = Global_vars() 
 
 def print_global_variables(module):
     """
@@ -86,30 +93,43 @@ def print_global_variables(module):
     
 #     return None
 
+
+# def add_to_dict(dict, key, value):
+#     if key not in dict:
+#         dict[key] = value
+#     else:
+#         print(f"Key '{key}' already exists with value '{dict[key]}'")
+
+
+# def add_to_set(set, item):
+#     if item not in set:
+#         set.add(item)
+#     else:
+#         print(f"Item '{item}' already exists in the set")
+
+
 def walk_directory(path):
     """
-    Walk a directory and return all paths. ///////////
+    Walk a directory and return all paths in a set.
     """
     
+    all_paths_set = set()
+
     for root_dir, subdirs, files in os.walk(path):
-        # Measure the path length of the current directory
-        root_dir_len = len(root_dir)
-        print(f"Root dir: {root_dir}\t(Len: {root_dir_len})")
+        # print(f"Root dir: {root_dir}\t(Len: {len(root_dir)})")
+        all_paths_set.add(root_dir)
         
-        # Measure the path length of each subdirectory
         for dirname in subdirs:
             subdir_path = os.path.join(root_dir, dirname)
-            subdir_path_len = len(subdir_path)
-            print(f"  Subdir: {subdir_path}\t(Len: {subdir_path_len})")
-        
-        # Measure the path length of each file
+            # print(f"  Subdir: {subdir_path}\t(Len: {len(subdir_path)})")
+            all_paths_set.add(subdir_path)
+
         for filename in files:
             file_path = os.path.join(root_dir, filename)
-            file_path_len = len(file_path)
-            print(f"  File:   {file_path}\t(Len: {file_path_len})")
+            # print(f"  File:   {file_path}\t(Len: {len(file_path)})")
+            all_paths_set.add(file_path)
 
-
-
+    return all_paths_set
 
 
 def parse_args():
@@ -174,7 +194,9 @@ def main():
     args = parse_args()
     print_global_variables(config)
 
-    walk_directory(args.base_dir)
+    all_paths_set = walk_directory(args.base_dir)
+    pprint.pprint(all_paths_set)
+
 
 
     # Get paths and perform operations
