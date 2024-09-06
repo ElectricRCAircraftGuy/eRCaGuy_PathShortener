@@ -9,11 +9,17 @@ WIP; not yet functional.
 
 A tool to shorten paths on Linux (4096 chars max path length) &amp; Mac so that they can be unzipped, used, copied, etc. on Windows which has an insanely small max path length of ~256 chars.
 
-Edit `config.py`, then run the program:
+1. Install dependencies:
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-```bash
-./path_shortener.py
-```
+1. Edit `config.py` as needed. 
+
+1. Run the program:
+    ```bash
+    ./path_shortener.py
+    ```
 
 
 # Design scratch notes

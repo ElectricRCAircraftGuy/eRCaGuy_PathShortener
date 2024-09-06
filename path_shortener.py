@@ -33,12 +33,32 @@ import argparse
 import inspect 
 import os
 import pprint
+import shutil
 import textwrap
+
+from pathlib import Path 
 
 
 # See my answer: https://stackoverflow.com/a/74800814/4561887
 FULL_PATH_TO_SCRIPT = os.path.abspath(__file__)
 SCRIPT_DIRECTORY = str(os.path.dirname(FULL_PATH_TO_SCRIPT))
+
+
+def copy_directory(src, dst):
+    src_path = Path(src)
+    dst_path = Path(dst)
+    
+    if not src_path.exists():
+        print(f"Error: Source directory {src} does not exist. Exiting.")
+        exit(1)
+    
+    if dst_path.exists():
+        print(f"Error: Destination directory {dst} already exists. Exiting.")
+        exit(1)
+    
+    shutil.copytree(src_path, dst_path)
+    print(f"Copied {src} to {dst}")
+    print("  Note: if symlinks were in the source directory, they were copied as real files.")
 
 
 # /////////
@@ -63,10 +83,10 @@ class Paths:
     def __init__(self):
         pass
 
-    # intended data to be stored herein
-    self.original_path = None
-    self.fixed_path = None  # the Windows-friendly path with no illegal chars in Windows
-    self.shortened_path = None
+    # # intended data to be stored herein
+    # self.original_path = None
+    # self.fixed_path = None  # the Windows-friendly path with no illegal chars in Windows
+    # self.shortened_path = None
 
 
 def print_global_variables(module):
@@ -89,7 +109,7 @@ def print_global_variables(module):
     global_vars = [
         "WINDOWS_MAX_PATH_LEN",
         "PATH_LEN_ALREADY_USED",
-        "MAX_PATH_LEN",
+        "MAX_ALLOWED_PATH_LEN",
     ]
     
     print(f"Global variables in module: {module.__name__}:")
@@ -98,18 +118,6 @@ def print_global_variables(module):
         print(f"  {name}: {value}")
 
     print()
-
-
-# def get_paths(path):
-#     """
-#     Obtain all paths in the directory `path`. 
-#     """
-
-#     if os.path.isdir(path):
-#         paths = [os.path.join(path, f) for f in os.listdir(path)]
-#         return paths
-    
-#     return None
 
 
 def add_to_dict(dict, key, value):
@@ -124,35 +132,33 @@ def add_to_dict(dict, key, value):
         pass
 
 
-# def add_to_set(set, item):
-#     if item not in set:
-#         set.add(item)
-#     else:
-#         print(f"Item '{item}' already exists in the set")
-
-
 def walk_directory(path):
     """
     Walk a directory and return all paths in a set.
     """
     
-    all_paths_dict = {}
+    all_paths_set = set()
+
+    max_len = 0
 
     for root_dir, subdirs, files in os.walk(path):
         # print(f"Root dir: {root_dir}\t(Len: {len(root_dir)})")
-        add_to_dict(all_paths_dict, root_dir, None)
+        all_paths_set.add(root_dir)
+        max_len = max(max_len, len(root_dir))
         
         for dirname in subdirs:
             subdir_path = os.path.join(root_dir, dirname)
             # print(f"  Subdir: {subdir_path}\t(Len: {len(subdir_path)})")
-            add_to_dict(all_paths_dict, subdir_path, None)
+            all_paths_set.add(subdir_path)
+            max_len = max(max_len, len(subdir_path))
 
         for filename in files:
             file_path = os.path.join(root_dir, filename)
             # print(f"  File:   {file_path}\t(Len: {len(file_path)})")
-            add_to_dict(all_paths_dict, file_path, None)
+            all_paths_set.add(file_path)
+            max_len = max(max_len, len(file_path))
 
-    return all_paths_dict
+    return all_paths_set, max_len
 
 
 def parse_args():
@@ -217,14 +223,22 @@ def main():
     args = parse_args()
     print_global_variables(config)
 
-    all_paths_dict = walk_directory(args.base_dir)
-    pprint.pprint(all_paths_dict)
+    all_paths_set, max_len = walk_directory(args.base_dir)
+    pprint.pprint(all_paths_set)
+    print(f"\nMax path length used: {max_len}")
+
+    if (max_len < (config.MAX_ALLOWED_PATH_LEN - len("_shortened"))):
+        print("All paths are already short enough. Nothing to do.")
+        exit(0)
+    
+    print(f"Paths are too long. MAX_ALLOWED_PATH_LEN = {config.MAX_ALLOWED_PATH_LEN}. " 
+        + f"Shortening paths...")
+
+    print("Copying files to a new directory...")
+    copy_directory(args.base_dir, args.base_dir + "_shortened")
 
 
 
-    # Get paths and perform operations
-    # paths_list = get_paths(args.dir)
-    # print(paths_list)
 
 
 

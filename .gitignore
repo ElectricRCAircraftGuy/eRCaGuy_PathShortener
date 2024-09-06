@@ -30,3 +30,4 @@ trash/
 __pycache__/
 
 /test_paths/
+/test_paths_shortened/
