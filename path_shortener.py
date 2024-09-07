@@ -139,32 +139,28 @@ def add_to_sorted_dict(sorted_dict, key, value):
 
 def walk_directory(path):
     """
-    Walk a directory and return all paths in a set.
+    Walk a directory and return all unique paths in a Python set (hash set).
     """
     
-    # key:value = path_len:path sorted in reverse order
-    sorted_paths_dict_of_lists = SortedDict(lambda x: -x)  
+    all_paths_set = set()
 
     max_len = 0
 
     for root_dir, subdirs, files in os.walk(path):
         # print(f"Root dir: {root_dir}\t(Len: {len(root_dir)})")
-        add_to_sorted_dict(sorted_paths_dict_of_lists, len(root_dir), root_dir)
+        all_paths_set.add(root_dir)
         max_len = max(max_len, len(root_dir))
-
-        if any(char in root_dir for char in ILLEGAL_WINDOWS_CHARS):
-            illegal_windows_char_path_count += 1
         
         for dirname in subdirs:
             subdir_path = os.path.join(root_dir, dirname)
             # print(f"  Subdir: {subdir_path}\t(Len: {len(subdir_path)})")
-            add_to_sorted_dict(sorted_paths_dict_of_lists, len(subdir_path), subdir_path)
+            all_paths_set.add(subdir_path)
             max_len = max(max_len, len(subdir_path))
 
         for filename in files:
             file_path = os.path.join(root_dir, filename)
             # print(f"  File:   {file_path}\t(Len: {len(file_path)})")
-            add_to_sorted_dict(sorted_paths_dict_of_lists, len(file_path), file_path)
+            all_paths_set.add(file_path)
             max_len = max(max_len, len(file_path))
 
     return all_paths_set, max_len
@@ -233,40 +229,67 @@ def main():
     print_global_variables(config)
 
     all_paths_set, max_len = walk_directory(args.base_dir)
-    pprint.pprint(all_paths_set)
-    print(f"\nMax path length used in dir {args.base_dir}: {max_len}")
 
-    path_with_illegal_chars = []
-
-
-    if (max_len < (config.MAX_ALLOWED_PATH_LEN - len("_shortened"))):
-        print("All paths are already short enough. Nothing to do.")
-        exit(0)
-    
-    print(f"Paths are too long. MAX_ALLOWED_PATH_LEN = {config.MAX_ALLOWED_PATH_LEN}. " 
-        + f"Shortening paths...")
-
-    print("Copying files to a new directory...")
-    shortened_dir = args.base_dir + "_shortened"
-    copy_directory(args.base_dir, shortened_dir)
-
-    all_paths_set, max_len = walk_directory(shortened_dir)
-    print(f"\nMax path length used in dir {shortened_dir}: {max_len}")
-
-    # Add all paths to a sorted dictionary if their paths are too long
+    # Now move the paths set to a sorted dictionary of lists, and then print it
 
     # key:value = path_len:path sorted in reverse order
-    sorted_paths_dict_of_lists = SortedDict(lambda x: -x)  
+    sorted_paths_dict_of_lists = SortedDict(lambda x: -x)
     for path in all_paths_set:
-        # print(f"Path: {path}")
-        # print(f"  Length: {len(path)}")
+        add_to_sorted_dict(sorted_paths_dict_of_lists, len(path), path)
+    
+    print("All paths, sorted by path length in descending order:")
+    for path_len, paths in sorted_paths_dict_of_lists.items():
+        print(f"{path_len:4}: ", end="")
+        i = 0
+        for path in paths:
+            if i == 0:
+                print(f"{path}")
+            else:
+                print(f"      {path}")
 
-        if len(path) > config.MAX_ALLOWED_PATH_LEN:
-            sorted_paths_dict_of_lists[len(path)] = path
+            i += 1
 
-    print("\nPaths that are too long:")
-    for path_len, path in sorted_paths_dict_of_lists.items():
-        print(f"{path_len}: {path}")
+    # Look for illegal Windows characters in the paths
+
+
+    exit(0) ########
+
+    # # pprint.pprint(all_paths_set)
+    # print(f"\nMax path length used in dir {args.base_dir}: {max_len}")
+
+
+
+    # path_with_illegal_chars = []
+
+
+    # if (max_len < (config.MAX_ALLOWED_PATH_LEN - len("_shortened"))):
+    #     print("All paths are already short enough. Nothing to do.")
+    #     exit(0)
+    
+    # print(f"Paths are too long. MAX_ALLOWED_PATH_LEN = {config.MAX_ALLOWED_PATH_LEN}. " 
+    #     + f"Shortening paths...")
+
+    # print("Copying files to a new directory...")
+    # shortened_dir = args.base_dir + "_shortened"
+    # copy_directory(args.base_dir, shortened_dir)
+
+    # all_paths_set, max_len = walk_directory(shortened_dir)
+    # print(f"\nMax path length used in dir {shortened_dir}: {max_len}")
+
+    # # Add all paths to a sorted dictionary if their paths are too long
+
+    # # key:value = path_len:path sorted in reverse order
+    # sorted_paths_dict_of_lists = SortedDict(lambda x: -x)  
+    # for path in all_paths_set:
+    #     # print(f"Path: {path}")
+    #     # print(f"  Length: {len(path)}")
+
+    #     if len(path) > config.MAX_ALLOWED_PATH_LEN:
+    #         sorted_paths_dict_of_lists[len(path)] = path
+
+    # print("\nPaths that are too long:")
+    # for path_len, path in sorted_paths_dict_of_lists.items():
+    #     print(f"{path_len}: {path}")
 
 
 if __name__ == "__main__":
@@ -274,9 +297,9 @@ if __name__ == "__main__":
 
 
 
-    illegal_windows_char_path_count = 0  # count of paths with illegal Windows chars
-    # don't include / in this list since it's part of valid Linux paths
-    ILLEGAL_WINDOWS_CHARS = "<>:\"\\|?*"  
+    # illegal_windows_char_path_count = 0  # count of paths with illegal Windows chars
+    # # don't include / in this list since it's part of valid Linux paths
+    # ILLEGAL_WINDOWS_CHARS = "<>:\"\\|?*"  
 
-            if any(char in subdir_path for char in ILLEGAL_WINDOWS_CHARS):
-                illegal_windows_char_path_count += 1
+    #         if any(char in subdir_path for char in ILLEGAL_WINDOWS_CHARS):
+    #             illegal_windows_char_path_count += 1
