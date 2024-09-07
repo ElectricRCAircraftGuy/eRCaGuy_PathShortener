@@ -7,8 +7,10 @@ Example usage:
 
 ```bash
 # General example 
-# <======= RUN THIS ========
 ./path_shortener.py test_paths
+
+rm -r test_paths_shortened; ./path_shortener.py test_paths
+# <======= BEST ========
 
 # Help menu
 ./path_shortener.py -h
@@ -26,7 +28,7 @@ Example usage:
 import config
 
 # Third party imports
-# NA
+from sortedcontainers import SortedDict
 
 # Python imports
 import argparse
@@ -61,32 +63,25 @@ def copy_directory(src, dst):
     print("  Note: if symlinks were in the source directory, they were copied as real files.")
 
 
-# /////////
-# class Global_vars:
-#     """
-#     Global variables.
-#     See my answer: https://stackoverflow.com/a/77161026/4561887
-#     """
-#     pass
+class AnyStruct:
+    """
+    A class to store any data structure.
+    Ex: 
+    ```py
+    any_struct = AnyStruct()
+    any_struct.my_dict = {}
+    ```
+    See my answer: https://stackoverflow.com/a/77161026/4561887
+    """
+    pass
 
-# global_vars = Global_vars() 
-
-
-# class PathData:
-#     def __init__(self):
-#         pass
-
-#     # intended data to be stored herein
-#     self.max_path
 
 class Paths:
     def __init__(self):
-        pass
-
-    # # intended data to be stored herein
-    # self.original_path = None
-    # self.fixed_path = None  # the Windows-friendly path with no illegal chars in Windows
-    # self.shortened_path = None
+        # intended data to be stored herein
+        self.original_path = None
+        self.fixed_path = None  # the Windows-friendly path with no illegal chars in Windows
+        self.shortened_path = None
 
 
 def print_global_variables(module):
@@ -140,11 +135,17 @@ def walk_directory(path):
     all_paths_set = set()
 
     max_len = 0
+    illegal_windows_char_path_count = 0  # count of paths with illegal Windows chars
+    # don't include / in this list since it's part of valid Linux paths
+    ILLEGAL_WINDOWS_CHARS = "<>:\"\\|?*"  
 
     for root_dir, subdirs, files in os.walk(path):
         # print(f"Root dir: {root_dir}\t(Len: {len(root_dir)})")
         all_paths_set.add(root_dir)
         max_len = max(max_len, len(root_dir))
+
+        if any(char in root_dir for char in ILLEGAL_WINDOWS_CHARS):
+            illegal_windows_char_path_count += 1
         
         for dirname in subdirs:
             subdir_path = os.path.join(root_dir, dirname)
@@ -152,13 +153,19 @@ def walk_directory(path):
             all_paths_set.add(subdir_path)
             max_len = max(max_len, len(subdir_path))
 
+            if any(char in subdir_path for char in ILLEGAL_WINDOWS_CHARS):
+                illegal_windows_char_path_count += 1
+
         for filename in files:
             file_path = os.path.join(root_dir, filename)
             # print(f"  File:   {file_path}\t(Len: {len(file_path)})")
             all_paths_set.add(file_path)
             max_len = max(max_len, len(file_path))
 
-    return all_paths_set, max_len
+            if any(char in file_path for char in ILLEGAL_WINDOWS_CHARS):
+                illegal_windows_char_path_count += 1
+
+    return all_paths_set, max_len, illegal_windows_char_path_count
 
 
 def parse_args():
@@ -225,7 +232,9 @@ def main():
 
     all_paths_set, max_len = walk_directory(args.base_dir)
     pprint.pprint(all_paths_set)
-    print(f"\nMax path length used: {max_len}")
+    print(f"\nMax path length used in dir {args.base_dir}: {max_len}")
+
+    if 
 
     if (max_len < (config.MAX_ALLOWED_PATH_LEN - len("_shortened"))):
         print("All paths are already short enough. Nothing to do.")
@@ -235,11 +244,24 @@ def main():
         + f"Shortening paths...")
 
     print("Copying files to a new directory...")
-    copy_directory(args.base_dir, args.base_dir + "_shortened")
+    shortened_dir = args.base_dir + "_shortened"
+    copy_directory(args.base_dir, shortened_dir)
 
+    all_paths_set, max_len = walk_directory(shortened_dir)
+    print(f"\nMax path length used in dir {shortened_dir}: {max_len}")
 
+    # Add all paths to a sorted dictionary if their paths are too long
+    sorted_dict = SortedDict(lambda x: -x)  # key:value = path_len:path sorted in reverse order
+    for path in all_paths_set:
+        # print(f"Path: {path}")
+        # print(f"  Length: {len(path)}")
 
+        if len(path) > config.MAX_ALLOWED_PATH_LEN:
+            sorted_dict[len(path)] = path
 
+    print("\nPaths that are too long:")
+    for path_len, path in sorted_dict.items():
+        print(f"{path_len}: {path}")
 
 
 if __name__ == "__main__":
