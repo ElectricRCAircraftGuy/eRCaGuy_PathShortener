@@ -53,3 +53,6 @@ Tue. 3 Sept. 2024:
 1. [ ] when done, print out the result. 
 1. [ ] in the real scenario (non-dry-run, via `-F`), copy the target dir to a new location, then apply all of the shortenings
 
+Fri. 6 Sept. 2024:
+1. [ ] update `generate_test_paths.py` to generate 1) some symlinks 2) paths with illegal windows chars (all types of chars)
+1. [ ] continue work on it

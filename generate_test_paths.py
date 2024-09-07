@@ -26,7 +26,7 @@ words = [
     "lambda", "mu", "nu", "xi", "omicron", "pi", "rho", "sigma", "tau", "upsilon", "phi",
     "chi", "psi", "omega", "quick", "brown", "fox", "jumps", "over", "lazy", "dog", "bright",
     "sun", "shines", "high", "sky", "blue", "ocean", "waves", "crash", "shore", "green",
-    "forest", "trees", "whisper", "wind"
+    "forest", "trees", "whisper", "wind", "<>:\"\\|?*"
 ]
 
 def generate_human_readable_name(num_words):

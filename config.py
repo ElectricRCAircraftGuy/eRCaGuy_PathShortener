@@ -9,3 +9,6 @@ WINDOWS_MAX_PATH_LEN = 255  # approximate Windows limit
 PATH_LEN_ALREADY_USED = 107
 # The remaining chars we can use for the path. This tool will shorten paths to this length.
 MAX_ALLOWED_PATH_LEN = WINDOWS_MAX_PATH_LEN - PATH_LEN_ALREADY_USED
+
+# don't include / in this list since it's part of valid Linux paths
+ILLEGAL_WINDOWS_CHARS = "<>:\"\\|?*"  

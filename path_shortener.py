@@ -144,33 +144,34 @@ def walk_directory(path):
     
     all_paths_set = set()
 
-    max_len = 0
-
     for root_dir, subdirs, files in os.walk(path):
         # print(f"Root dir: {root_dir}\t(Len: {len(root_dir)})")
         all_paths_set.add(root_dir)
-        max_len = max(max_len, len(root_dir))
         
         for dirname in subdirs:
             subdir_path = os.path.join(root_dir, dirname)
             # print(f"  Subdir: {subdir_path}\t(Len: {len(subdir_path)})")
             all_paths_set.add(subdir_path)
-            max_len = max(max_len, len(subdir_path))
 
         for filename in files:
             file_path = os.path.join(root_dir, filename)
             # print(f"  File:   {file_path}\t(Len: {len(file_path)})")
             all_paths_set.add(file_path)
-            max_len = max(max_len, len(file_path))
 
-    return all_paths_set, max_len
+    return all_paths_set
 
 
 def parse_args():
     # Set up argument parser
     parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter,
         description=textwrap.dedent("""\
             Shorten long paths to make them accessible on Windows.
+            This script makes a copy of 'dir', called 'dir_shortened', and performs the 
+            following on the copy:
+              1. Removes illegal Windows characters from paths.
+              2. Shortens all paths to a length that is acceptable on Windows.
+              3. Copies symlinks as files, so they are not broken on Windows.
             You may change other settings inside `config.py`.  
         """)
     )
@@ -228,7 +229,8 @@ def main():
     args = parse_args()
     print_global_variables(config)
 
-    all_paths_set, max_len = walk_directory(args.base_dir)
+    all_paths_set = walk_directory(args.base_dir)
+    # pprint.pprint(all_paths_set)
 
     # Now move the paths set to a sorted dictionary of lists, and then print it
 
@@ -249,47 +251,88 @@ def main():
 
             i += 1
 
-    # Look for illegal Windows characters in the paths
+    # See if we need to copy the directory. Check 3 things:
+    # 1. If the paths are already short enough
+    # 2. If there are symlinks in the paths
+    # 3. If there are illegal Windows characters in the paths
+    # If there are any of these, we need to copy the directory.
 
+    max_allowed_path_len = config.MAX_ALLOWED_PATH_LEN - len("_shortened")
+    max_len = 0
+    too_long_path_count = 0
+    symlink_path_count = 0
+    illegal_windows_char_path_count = 0  # count of paths with illegal Windows characters
+    for path in all_paths_set:
+        max_len = max(max_len, len(path))
 
-    exit(0) ########
+        if len(path) > max_allowed_path_len:
+            too_long_path_count += 1 
 
-    # # pprint.pprint(all_paths_set)
-    # print(f"\nMax path length used in dir {args.base_dir}: {max_len}")
+        if os.path.islink(path):
+            symlink_path_count += 1
+        
+        if any(char in path for char in config.ILLEGAL_WINDOWS_CHARS):
+            illegal_windows_char_path_count += 1
 
+    need_to_copy_dir = False
 
-
-    # path_with_illegal_chars = []
-
-
-    # if (max_len < (config.MAX_ALLOWED_PATH_LEN - len("_shortened"))):
-    #     print("All paths are already short enough. Nothing to do.")
-    #     exit(0)
+    print(f"\nMax path length used in dir {args.base_dir}: {max_len}")
     
-    # print(f"Paths are too long. MAX_ALLOWED_PATH_LEN = {config.MAX_ALLOWED_PATH_LEN}. " 
-    #     + f"Shortening paths...")
+    path_count = len(all_paths_set)
+    print(f"Total paths in dir: {path_count}")
 
-    # print("Copying files to a new directory...")
-    # shortened_dir = args.base_dir + "_shortened"
-    # copy_directory(args.base_dir, shortened_dir)
+    if too_long_path_count == 0:
+        print("All paths are already short enough.")
+    else:
+        need_to_copy_dir = True
+        print(f"{too_long_path_count} paths are too long. max_allowed_path_len = "
+            + f"{max_allowed_path_len} chars. Need to shorten paths.")
 
-    # all_paths_set, max_len = walk_directory(shortened_dir)
-    # print(f"\nMax path length used in dir {shortened_dir}: {max_len}")
+    if symlink_path_count == 0:
+        print("No symlinks found in paths.")
+    else:
+        need_to_copy_dir = True
+        print(f"{symlink_path_count} symlinks found in paths. Need to copy directory to copy "
+            + f"what it points to.")
+        
+    if illegal_windows_char_path_count == 0:
+        print("No paths with illegal Windows characters found.")
+    else:
+        need_to_copy_dir = True
+        print(f"{illegal_windows_char_path_count} paths with illegal Windows characters found. "
+            + f"Need to copy directory.")
 
-    # # Add all paths to a sorted dictionary if their paths are too long
+    if not need_to_copy_dir:
+        print("Nothing to do. Exiting...")
+        exit(0)
 
-    # # key:value = path_len:path sorted in reverse order
-    # sorted_paths_dict_of_lists = SortedDict(lambda x: -x)  
-    # for path in all_paths_set:
-    #     # print(f"Path: {path}")
-    #     # print(f"  Length: {len(path)}")
+    print("\nCopying files to a new directory...")
+    shortened_dir = args.base_dir + "_shortened"
+    copy_directory(args.base_dir, shortened_dir)
 
-    #     if len(path) > config.MAX_ALLOWED_PATH_LEN:
-    #         sorted_paths_dict_of_lists[len(path)] = path
+    # #########3
+    # # Update the root dir in all paths
+    # for path_len, paths in sorted_paths_dict_of_lists.items():
+    #     for path in paths:
+    #         new_path = path.replace(args.base_dir, shortened_dir)
+    #         print(f"  {path} -> {new_path}")
 
-    # print("\nPaths that are too long:")
-    # for path_len, path in sorted_paths_dict_of_lists.items():
-    #     print(f"{path_len}: {path}")
+    # # Fix paths with illegal Windows chars 
+    # #
+
+
+
+    # ############3
+    # # Remove the paths that are not too long 
+    # for path_len, paths in sorted_paths_dict_of_lists.items():
+    #     print(f"{path_len:4}: ", end="")
+    #     for i, path in enumerate(paths):
+    #         if i == 0:
+    #             print(f"{path}")
+    #         else:
+    #             print(f"      {path}")
+
+
 
 
 if __name__ == "__main__":
@@ -297,9 +340,5 @@ if __name__ == "__main__":
 
 
 
-    # illegal_windows_char_path_count = 0  # count of paths with illegal Windows chars
-    # # don't include / in this list since it's part of valid Linux paths
-    # ILLEGAL_WINDOWS_CHARS = "<>:\"\\|?*"  
 
-    #         if any(char in subdir_path for char in ILLEGAL_WINDOWS_CHARS):
-    #             illegal_windows_char_path_count += 1
+
