@@ -109,7 +109,8 @@ Fri. 6 Sept. 2024:  <=======
 1. [x] continue work on it
 
 Sat. 7 Sept. 2024
-1. [ ] when detecting illegal Windows chars, copy the offending paths into a new sorted list data structure. 
+1. [x] when detecting illegal Windows chars, copy the offending paths into a new sorted list data structure. 
+    It is called `sorted_illegal_paths_list`
 1. [ ] after the copy, deep copy both lists for a before and after effect, and fix root paths in both new lists: illegal Windows chars and too-long paths 
 1. [ ] fix illegal chars paths. Parallel make the changes in the too-long paths list 
 1. [ ] fix too long paths

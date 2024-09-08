@@ -29,6 +29,7 @@ import config
 
 # Third party imports
 from sortedcontainers import SortedDict
+from sortedcontainers import SortedList
 
 # Python imports
 import argparse
@@ -238,18 +239,8 @@ def main():
     sorted_paths_dict_of_lists = SortedDict(lambda x: -x)
     for path in all_paths_set:
         add_to_sorted_dict(sorted_paths_dict_of_lists, len(path), path)
-    
-    print("All paths, sorted by path length in descending order:")
-    for path_len, paths in sorted_paths_dict_of_lists.items():
-        print(f"{path_len:4}: ", end="")
-        i = 0
-        for path in paths:
-            if i == 0:
-                print(f"{path}")
-            else:
-                print(f"      {path}")
 
-            i += 1
+    sorted_illegal_paths_list = SortedList()
 
     # See if we need to copy the directory. Check 3 things:
     # 1. If the paths are already short enough
@@ -273,10 +264,11 @@ def main():
         
         if any(char in path for char in config.ILLEGAL_WINDOWS_CHARS):
             illegal_windows_char_path_count += 1
+            sorted_illegal_paths_list.add(path)
 
     need_to_copy_dir = False
 
-    print(f"\nMax path length used in dir {args.base_dir}: {max_len}")
+    print(f"Max path length used in dir {args.base_dir}: {max_len}")
     
     path_count = len(all_paths_set)
     print(f"Total paths in dir: {path_count}")
@@ -301,6 +293,26 @@ def main():
         need_to_copy_dir = True
         print(f"{illegal_windows_char_path_count} paths with illegal Windows characters found. "
             + f"Need to copy directory.")
+
+    print()
+
+    # print the paths 
+
+    print("All paths, sorted by path length in descending order:")
+    for path_len, paths in sorted_paths_dict_of_lists.items():
+        print(f"{path_len:4}: ", end="")
+        i = 0
+        for path in paths:
+            if i == 0:
+                print(f"{path}")
+            else:
+                print(f"      {path}")
+
+            i += 1
+
+    print("\nPaths with illegal Windows characters:")
+    for path in sorted_illegal_paths_list:
+        print(f"      {path}")
 
     if not need_to_copy_dir:
         print("Nothing to do. Exiting...")
