@@ -45,14 +45,14 @@ def generate_human_readable_name(num_words):
     return name
 
 
-def get_random_chars(string, max_num_chars):
+def get_random_chars(string, min_num_chars, max_num_chars):
     """
-    Get a random set of a random number of characters, from 1 to `max_num_chars` from string
-    `string`.
+    Get a random set of a random number of characters, from `min_num_chars` to `max_num_chars`,
+    inclusive, from string `string`.
 
     Returns a string. 
     """
-    num_chars = random.randint(1, max_num_chars)
+    num_chars = random.randint(min_num_chars, max_num_chars)
     # See: https://stackoverflow.com/a/59763969/4561887
     random_chars = ''.join(random.choices(string, k=num_chars))
 
@@ -81,14 +81,17 @@ def create_long_name_structure(
             folder_path = os.path.join(current_dir, folder_name)
             os.makedirs(folder_path, exist_ok=True)
 
+            extension = ".txt"
+
             # Create files in the current directory
             # - for some files, add some illegal chars too
             for i in range(num_files_per_folder):
                 random_illegal_chars = ""
                 if i % 2 == 1:  # for odd files, add some illegal chars too
-                    random_illegal_chars = get_random_chars(config.ILLEGAL_WINDOWS_CHARS, 3)
+                    random_illegal_chars = get_random_chars(config.ILLEGAL_WINDOWS_CHARS, 1, 3)
 
-                file_name = generate_human_readable_name(num_words) + random_illegal_chars + ".txt"
+                file_name = (
+                    generate_human_readable_name(num_words) + random_illegal_chars + extension)
                 file_path = os.path.join(folder_path, file_name)
                 with open(file_path, 'w') as f:
                     f.write("This is a test file.")
@@ -98,13 +101,23 @@ def create_long_name_structure(
             for i in range(num_empty_dirs_per_folder):
                 random_illegal_chars = ""
                 if i % 2 == 1:  # for odd dirs, add some illegal chars too
-                    random_illegal_chars = get_random_chars(config.ILLEGAL_WINDOWS_CHARS, 3)
+                    random_illegal_chars = get_random_chars(config.ILLEGAL_WINDOWS_CHARS, 1, 3)
                 
                 empty_dir_name = generate_human_readable_name(num_words) + random_illegal_chars
                 empty_dir_path = os.path.join(folder_path, empty_dir_name)
                 os.makedirs(empty_dir_path, exist_ok=True)
 
-            # Recursively create nested directories
+            # Create one symlink in each folder too, using the last file created
+            file_name_without_extension = os.path.splitext(file_name)[0]
+            random_illegal_chars = get_random_chars(config.ILLEGAL_WINDOWS_CHARS, 0, 3)
+            symlink_name = (
+                file_name_without_extension + random_illegal_chars + "_symlink" + extension)
+            symlink_path = os.path.join(folder_path, symlink_name)
+            target_relative = file_name
+            os.symlink(target_relative, symlink_path)
+
+
+            # Use recursion to create nested directories
             create_nested_dirs(folder_path, current_depth + 1)
 
     # Start creating the directory structure from the base directory
