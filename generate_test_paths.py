@@ -10,6 +10,13 @@ References:
 
 """
 
+# local imports 
+import config 
+
+# 3rd party imports
+# NA
+
+# standard library imports
 import os
 import random
 import subprocess
@@ -26,7 +33,7 @@ words = [
     "lambda", "mu", "nu", "xi", "omicron", "pi", "rho", "sigma", "tau", "upsilon", "phi",
     "chi", "psi", "omega", "quick", "brown", "fox", "jumps", "over", "lazy", "dog", "bright",
     "sun", "shines", "high", "sky", "blue", "ocean", "waves", "crash", "shore", "green",
-    "forest", "trees", "whisper", "wind", "<>:\"\\|?*"
+    "forest", "trees", "whisper", "wind", config.ILLEGAL_WINDOWS_CHARS
 ]
 
 def generate_human_readable_name(num_words):
@@ -36,6 +43,20 @@ def generate_human_readable_name(num_words):
     
     name = '_'.join(random.choice(words) for _ in range(num_words))
     return name
+
+
+def get_random_chars(string, max_num_chars):
+    """
+    Get a random set of a random number of characters, from 1 to `max_num_chars` from string
+    `string`.
+
+    Returns a string. 
+    """
+    num_chars = random.randint(1, max_num_chars)
+    # See: https://stackoverflow.com/a/59763969/4561887
+    random_chars = ''.join(random.choices(string, k=num_chars))
+
+    return random_chars
 
 
 def create_long_name_structure(
@@ -61,16 +82,25 @@ def create_long_name_structure(
             os.makedirs(folder_path, exist_ok=True)
 
             # Create files in the current directory
-            for _ in range(num_files_per_folder):
-                # Generate a human-readable file name
-                file_name = generate_human_readable_name(num_words) + ".txt"
+            # - for some files, add some illegal chars too
+            for i in range(num_files_per_folder):
+                random_illegal_chars = ""
+                if i % 2 == 1:  # for odd files, add some illegal chars too
+                    random_illegal_chars = get_random_chars(config.ILLEGAL_WINDOWS_CHARS, 3)
+
+                file_name = generate_human_readable_name(num_words) + random_illegal_chars + ".txt"
                 file_path = os.path.join(folder_path, file_name)
                 with open(file_path, 'w') as f:
                     f.write("This is a test file.")
 
             # Make empty dirs in each folder too
-            for _ in range(num_empty_dirs_per_folder):
-                empty_dir_name = generate_human_readable_name(num_words)
+            # - for some dir names, add some illegal chars too
+            for i in range(num_empty_dirs_per_folder):
+                random_illegal_chars = ""
+                if i % 2 == 1:  # for odd dirs, add some illegal chars too
+                    random_illegal_chars = get_random_chars(config.ILLEGAL_WINDOWS_CHARS, 3)
+                
+                empty_dir_name = generate_human_readable_name(num_words) + random_illegal_chars
                 empty_dir_path = os.path.join(folder_path, empty_dir_name)
                 os.makedirs(empty_dir_path, exist_ok=True)
 

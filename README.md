@@ -105,7 +105,7 @@ Tue. 3 Sept. 2024:
 Fri. 6 Sept. 2024:  <=======
 1. [ ] update `generate_test_paths.py` to generate 
     1. [ ] some symlinks
-    1. [ ] paths with illegal windows chars (all types of chars)
+    1. [x] paths with illegal windows chars (all types of chars)
 1. [ ] continue work on it
 
 Sat. 7 Sept. 2024
