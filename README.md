@@ -118,3 +118,14 @@ Sat. 7 Sept. 2024
 1. [ ] print the before and after paths.
 1. [ ] produce before and after `tree` lists. `meld` compare the before and after tree lists. When meld is closed, let my program terminate
 
+Sun. 8 Sept. 2024
+1. [x] Index into a sorted list. Can you? yes!
+1. [x] Try to index into a path object too. Can you?
+    Yes!
+    ```py
+    from pathlib import Path
+    p = Path('test_paths/phi_mu_shines_sky_iota/alpha_waves_eta_phi_phi/omega_sun_forest_wind_nu/bright_iota_sky_omicron_dog/<>:"\|?*_forest_lambda_tau_chi/delta_lambda_sky_wind_sky/waves_lazy_wind_psi_ocean/zeta_quick_xi_whisper_xi/nu_omega_gamma_brown_lazy<_symlink.txt')
+
+    p.parts
+    len(p.parts)
+    ```

@@ -26,7 +26,6 @@ rm -r test_paths_shortened; ./path_shortener.py test_paths
 
 # Local imports
 import config
-import paths 
 
 # Third party imports
 from sortedcontainers import SortedList
@@ -349,6 +348,12 @@ def fix_paths(paths_to_fix_sorted_list, args):
     #     print(f"{path}")
 
     #///////////// PICK BACK UP HERE!
+
+    # 1. fix the root path
+
+    # 2. fix the paths with illegal Windows characters
+
+    # 3. shorten the paths
 
     # Fix the root path in the copy
     # for path_len, paths in sorted_paths_dict_of_lists_2.items():
