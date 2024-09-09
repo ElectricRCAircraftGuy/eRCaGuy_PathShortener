@@ -26,6 +26,7 @@ rm -r test_paths_shortened; ./path_shortener.py test_paths
 
 # Local imports
 import config
+import paths 
 
 # Third party imports
 from sortedcontainers import SortedDict
@@ -349,7 +350,8 @@ def main():
     sorted_illegal_paths_list_2 = copy.deepcopy(sorted_illegal_paths_list)
 
     # Fix the root path
-    
+
+
 
     remove_illegal_windows_chars(sorted_illegal_paths_list_2, sorted_paths_dict_of_lists_2)
 
