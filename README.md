@@ -111,8 +111,10 @@ Fri. 6 Sept. 2024:  <=======
 Sat. 7 Sept. 2024
 1. [x] when detecting illegal Windows chars, copy the offending paths into a new sorted list data structure. 
     It is called `sorted_illegal_paths_list`
-1. [ ] after the copy, deep copy both lists for a before and after effect, and fix root paths in both new lists: illegal Windows chars and too-long paths 
-1. [ ] fix illegal chars paths. Parallel make the changes in the too-long paths list 
+1. [x] after the copy, deep copy both lists for a before and after effect
+1. [ ] ...and fix root paths in both new lists: illegal Windows chars and too-long paths 
+1. [ ] fix illegal chars paths. Parallel make the changes in the too-long paths list if the path was in that list too (find a way to search for it, using its length as the index key) 
 1. [ ] fix too long paths
 1. [ ] print the before and after paths.
 1. [ ] produce before and after `tree` lists. `meld` compare the before and after tree lists. When meld is closed, let my program terminate
+

@@ -33,6 +33,7 @@ from sortedcontainers import SortedList
 
 # Python imports
 import argparse
+import copy
 import inspect 
 import os
 import pprint
@@ -226,6 +227,41 @@ def parse_args():
     return args
 
 
+def remove_illegal_windows_chars(sorted_illegal_paths_list, sorted_paths_dict_of_lists):
+    """
+    Remove illegal Windows characters from paths in `sorted_illegal_paths_list`, while also
+    fixing inside `sorted_paths_dict_of_lists` all paths which were changed in the former.
+    """
+
+    pass
+
+
+def print_sorted_paths_dict_of_lists(sorted_paths_dict_of_lists):
+    """
+    Print the paths in a sorted dictionary of lists.
+    """
+    print("All paths, sorted by path length in descending order:")
+    for path_len, paths in sorted_paths_dict_of_lists.items():
+        print(f"{path_len:4}: ", end="")
+        i = 0
+        for path in paths:
+            if i == 0:
+                print(f"{path}")
+            else:
+                print(f"      {path}")
+
+            i += 1
+
+
+def print_sorted_illegal_paths_list(sorted_illegal_paths_list):
+    """
+    Print the paths with illegal Windows characters.
+    """
+    print("\nPaths with illegal Windows characters:")
+    for path in sorted_illegal_paths_list:
+        print(f"      {path}")
+
+
 def main():
     args = parse_args()
     print_global_variables(config)
@@ -297,22 +333,8 @@ def main():
     print()
 
     # print the paths 
-
-    print("All paths, sorted by path length in descending order:")
-    for path_len, paths in sorted_paths_dict_of_lists.items():
-        print(f"{path_len:4}: ", end="")
-        i = 0
-        for path in paths:
-            if i == 0:
-                print(f"{path}")
-            else:
-                print(f"      {path}")
-
-            i += 1
-
-    print("\nPaths with illegal Windows characters:")
-    for path in sorted_illegal_paths_list:
-        print(f"      {path}")
+    print_sorted_paths_dict_of_lists(sorted_paths_dict_of_lists)
+    print_sorted_illegal_paths_list(sorted_illegal_paths_list)
 
     if not need_to_copy_dir:
         print("Nothing to do. Exiting...")
@@ -321,6 +343,16 @@ def main():
     print("\nCopying files to a new directory...")
     shortened_dir = args.base_dir + "_shortened"
     copy_directory(args.base_dir, shortened_dir)
+
+    # Deep copy `sorted_paths_dict_of_lists` and `sorted_illegal_paths_list`
+    sorted_paths_dict_of_lists_2 = copy.deepcopy(sorted_paths_dict_of_lists)
+    sorted_illegal_paths_list_2 = copy.deepcopy(sorted_illegal_paths_list)
+
+    # Fix the root path
+    
+
+    remove_illegal_windows_chars(sorted_illegal_paths_list_2, sorted_paths_dict_of_lists_2)
+
 
     # #########3
     # # Update the root dir in all paths
