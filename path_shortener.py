@@ -29,7 +29,6 @@ import config
 import paths 
 
 # Third party imports
-from sortedcontainers import SortedDict
 from sortedcontainers import SortedList
 
 # Python imports
@@ -48,6 +47,9 @@ from pathlib import Path
 FULL_PATH_TO_SCRIPT = os.path.abspath(__file__)
 SCRIPT_DIRECTORY = str(os.path.dirname(FULL_PATH_TO_SCRIPT))
 
+EXIT_SUCCESS = 0
+EXIT_FAILURE = 1
+
 
 def copy_directory(src, dst):
     src_path = Path(src)
@@ -55,14 +57,14 @@ def copy_directory(src, dst):
     
     if not src_path.exists():
         print(f"Error: Source directory {src} does not exist. Exiting.")
-        exit(1)
+        exit(EXIT_FAILURE)
     
     if dst_path.exists():
         print(f"Error: Destination directory {dst} already exists. Exiting.")
-        exit(1)
+        exit(EXIT_FAILURE)
     
     shutil.copytree(src_path, dst_path)
-    print(f"Copied {src} to {dst}")
+    print(f"Copied \"{src}\" to \"{dst}\"")
     print("  Note: if symlinks were in the source directory, they were copied as real files.")
 
 
@@ -85,6 +87,28 @@ class Paths:
         self.original_path = None
         self.fixed_path = None  # the Windows-friendly path with no illegal chars in Windows
         self.shortened_path = None
+
+
+class PathStats:
+    def __init__(self):
+        self.max_allowed_path_len = None
+        self.max_len = None
+        self.total_path_count = 0
+        self.too_long_path_count = None
+        self.symlink_path_count = None
+        self.illegal_windows_char_path_count = None
+        self.paths_to_fix_count = None
+
+    def print(self):
+        print("Path stats:")
+        print(f"  max_allowed_path_len: {self.max_allowed_path_len}")
+        print(f"  max_len: {self.max_len}")
+        print(f"  total_path_count: {self.total_path_count}")
+        print(f"  too_long_path_count: {self.too_long_path_count}")
+        print(f"  symlink_path_count: {self.symlink_path_count}")
+        print(f"  illegal_windows_char_path_count: {self.illegal_windows_char_path_count}")
+        print(f"  paths_to_fix_count: {self.paths_to_fix_count}")
+        print()
 
 
 def print_global_variables(module):
@@ -205,21 +229,21 @@ def parse_args():
     # Check if the directory exists, if it is not a dir, and if there are permission errors
     if not os.path.exists(args.dir):
         print("Error: directory not found.")
-        exit(1)
+        exit(EXIT_FAILURE)
     elif not os.path.isdir(args.dir):
         print("Error: path is not a directory.")
-        exit(1)
+        exit(EXIT_FAILURE)
     elif not os.access(args.dir, os.R_OK):
         print("Error: read permission denied.")
-        exit(1)
+        exit(EXIT_FAILURE)
 
     # Ensure we can execute (cd into) and write to the parent directory
     if not os.access(args.parent_dir, os.X_OK):
         print("Error: execute permission denied, so we cannot 'cd' into the parent dir.")
-        exit(1)
+        exit(EXIT_FAILURE)
     elif not os.access(args.parent_dir, os.W_OK):
         print("Error: write permission denied in the parent dir.")
-        exit(1)
+        exit(EXIT_FAILURE)
 
     os.chdir(args.parent_dir)
 
@@ -237,123 +261,103 @@ def remove_illegal_windows_chars(sorted_illegal_paths_list, sorted_paths_dict_of
     pass
 
 
-def print_sorted_paths_dict_of_lists(sorted_paths_dict_of_lists):
+def print_paths_to_fix(paths_to_fix_sorted_list):
     """
-    Print the paths in a sorted dictionary of lists.
+    Print the paths that need to be fixed.
     """
-    print("All paths, sorted by path length in descending order:")
-    for path_len, paths in sorted_paths_dict_of_lists.items():
-        print(f"{path_len:4}: ", end="")
-        i = 0
-        for path in paths:
-            if i == 0:
-                print(f"{path}")
-            else:
-                print(f"      {path}")
-
-            i += 1
+    print("Paths to fix, sorted by path length in descending order:")
+    print("Index: Len: Path")
+    for i, path in enumerate(paths_to_fix_sorted_list):
+        print(f"{i:4}: {len(path):4}: {path}")
 
 
-def print_sorted_illegal_paths_list(sorted_illegal_paths_list):
+def add_unique_to_sorted_list(sorted_list, value):
     """
-    Print the paths with illegal Windows characters.
+    Add a value to a sorted list if it is not already present.
     """
-    print("\nPaths with illegal Windows characters:")
-    for path in sorted_illegal_paths_list:
-        print(f"      {path}")
+    if value not in sorted_list:
+        sorted_list.add(value)
 
 
-def main():
-    args = parse_args()
-    print_global_variables(config)
+def get_paths_to_fix(all_paths_set):
+    """
+    Get the paths that need to be fixed and return them in a sorted list reverse-sorted by path
+    length.
 
-    all_paths_set = walk_directory(args.base_dir)
-    # pprint.pprint(all_paths_set)
+    Check 3 things that indicate if a path needs to be fixed:
+    # 1. If the path is too long
+    # 2. If there are symlinks in the path
+    # 3. If there are illegal Windows characters in the path
+    """
+    paths_to_fix_sorted_list = SortedList(key=lambda path: -len(path))
+    path_stats = PathStats()
 
-    # Now move the paths set to a sorted dictionary of lists, and then print it
+    path_stats.max_allowed_path_len = config.MAX_ALLOWED_PATH_LEN - len("_shortened")
+    path_stats.max_len = 0
+    path_stats.total_path_count = len(all_paths_set)
+    path_stats.too_long_path_count = 0
+    path_stats.symlink_path_count = 0
+    path_stats.illegal_windows_char_path_count = 0  # count of paths with illegal Windows characters    
 
-    # key:value = path_len:path sorted in reverse order
-    sorted_paths_dict_of_lists = SortedDict(lambda x: -x)
     for path in all_paths_set:
-        add_to_sorted_dict(sorted_paths_dict_of_lists, len(path), path)
+        add_to_list = False
+        path_stats.max_len = max(path_stats.max_len, len(path))
 
-    sorted_illegal_paths_list = SortedList()
+        # Check if the path is too long
+        if len(path) > path_stats.max_allowed_path_len:
+            path_stats.too_long_path_count += 1
+            add_to_list = True
 
-    # See if we need to copy the directory. Check 3 things:
-    # 1. If the paths are already short enough
-    # 2. If there are symlinks in the paths
-    # 3. If there are illegal Windows characters in the paths
-    # If there are any of these, we need to copy the directory.
-
-    max_allowed_path_len = config.MAX_ALLOWED_PATH_LEN - len("_shortened")
-    max_len = 0
-    too_long_path_count = 0
-    symlink_path_count = 0
-    illegal_windows_char_path_count = 0  # count of paths with illegal Windows characters
-    for path in all_paths_set:
-        max_len = max(max_len, len(path))
-
-        if len(path) > max_allowed_path_len:
-            too_long_path_count += 1 
-
+        # Check if the path is a symlink
         if os.path.islink(path):
-            symlink_path_count += 1
-        
+            path_stats.symlink_path_count += 1
+            add_to_list = True
+
+        # Check if the path has illegal Windows characters
         if any(char in path for char in config.ILLEGAL_WINDOWS_CHARS):
-            illegal_windows_char_path_count += 1
-            sorted_illegal_paths_list.add(path)
+            path_stats.illegal_windows_char_path_count += 1
+            add_to_list = True
 
-    need_to_copy_dir = False
+        if add_to_list:
+            add_unique_to_sorted_list(paths_to_fix_sorted_list, path)
 
-    print(f"Max path length used in dir {args.base_dir}: {max_len}")
-    
-    path_count = len(all_paths_set)
-    print(f"Total paths in dir: {path_count}")
+    path_stats.paths_to_fix_count = len(paths_to_fix_sorted_list)
 
-    if too_long_path_count == 0:
-        print("All paths are already short enough.")
-    else:
-        need_to_copy_dir = True
-        print(f"{too_long_path_count} paths are too long. max_allowed_path_len = "
-            + f"{max_allowed_path_len} chars. Need to shorten paths.")
+    return paths_to_fix_sorted_list, path_stats
 
-    if symlink_path_count == 0:
-        print("No symlinks found in paths.")
-    else:
-        need_to_copy_dir = True
-        print(f"{symlink_path_count} symlinks found in paths. Need to copy directory to copy "
-            + f"what it points to.")
-        
-    if illegal_windows_char_path_count == 0:
-        print("No paths with illegal Windows characters found.")
-    else:
-        need_to_copy_dir = True
-        print(f"{illegal_windows_char_path_count} paths with illegal Windows characters found. "
-            + f"Need to copy directory.")
 
-    print()
+def fix_paths(paths_to_fix_sorted_list, args):
+    """
+    Fix the paths in `paths_to_fix_sorted_list`: 
 
-    # print the paths 
-    print_sorted_paths_dict_of_lists(sorted_paths_dict_of_lists)
-    print_sorted_illegal_paths_list(sorted_illegal_paths_list)
+    1. Replace symlinks with real files. 
+    2. Replace illegal Windows characters with valid ones.
+    3. Shorten the paths to a length that is acceptable on Windows.
+    """
 
-    if not need_to_copy_dir:
-        print("Nothing to do. Exiting...")
-        exit(0)
-
+    # Note: this also automatically fixes the symlinks by replacing them with real files. 
     print("\nCopying files to a new directory...")
     shortened_dir = args.base_dir + "_shortened"
     copy_directory(args.base_dir, shortened_dir)
+    print()
 
-    # Deep copy `sorted_paths_dict_of_lists` and `sorted_illegal_paths_list`
-    sorted_paths_dict_of_lists_2 = copy.deepcopy(sorted_paths_dict_of_lists)
-    sorted_illegal_paths_list_2 = copy.deepcopy(sorted_illegal_paths_list)
+    # Copy the sorted list into a regular list to operate on
+    paths_to_fix_list = list(paths_to_fix_sorted_list)
 
-    # Fix the root path
+    # debugging
+    # for path in paths_to_fix_list:
+    #     print(f"{path}")
+
+    #///////////// PICK BACK UP HERE!
+
+    # Fix the root path in the copy
+    # for path_len, paths in sorted_paths_dict_of_lists_2.items():
+    #     for i, path in enumerate(paths):
+    #         new_path = path.replace(args.base_dir, shortened_dir)
+    #         sorted_paths_dict_of_lists_2[path_len][i] = new_path
 
 
-
-    remove_illegal_windows_chars(sorted_illegal_paths_list_2, sorted_paths_dict_of_lists_2)
+    # remove_illegal_windows_chars(sorted_illegal_paths_list_2, sorted_paths_dict_of_lists_2)
 
 
     # #########3
@@ -379,6 +383,21 @@ def main():
     #             print(f"      {path}")
 
 
+def main():
+    args = parse_args()
+    print_global_variables(config)
+
+    all_paths_set = walk_directory(args.base_dir)
+    # pprint.pprint(all_paths_set)
+    paths_to_fix_sorted_list, path_stats = get_paths_to_fix(all_paths_set)
+    path_stats.print()
+
+    if len(paths_to_fix_sorted_list) == 0:
+        print("Nothing to do. Exiting...")
+        exit(EXIT_SUCCESS)
+
+    print_paths_to_fix(paths_to_fix_sorted_list)
+    fix_paths(paths_to_fix_sorted_list, args)
 
 
 if __name__ == "__main__":
