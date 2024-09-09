@@ -30,6 +30,27 @@ def path_to_list(path):
     return path_elements_list
 
 
+# def path_read_element(path, index):
+    # path_elements_list = path_to_list(path)
+    # return path_elements_list[index]
+
+
+# def fix_root_path(sorted_paths_dict_of_lists, sorted_illegal_paths_list, new_root_path):
+#     # Fix the root path of all the paths in the dict and list
+#     for key, paths_list in sorted_paths_dict_of_lists.items():
+#         for i, path in enumerate(paths_list):
+#             new_path = path_replace(path, )
+
+#             new_path = path.replace(sorted_illegal_paths_list[key], new_root_path)
+#             paths_list[i] = new_path
+
+#     for i, path in enumerate(sorted_illegal_paths_list):
+#         new_path = path.replace(sorted_illegal_paths_list[i], new_root_path)
+#         sorted_illegal_paths_list[i] = new_path
+
+#     return sorted_paths_dict_of_lists, sorted_illegal_paths_list
+
+
 # Example usage
 if __name__ == "__main__":
 
