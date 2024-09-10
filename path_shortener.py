@@ -318,8 +318,19 @@ def get_paths_to_fix(all_paths_set):
 
 
 def print_paths_to_fix_list(paths_to_fix_list):
-    for path in paths_to_fix_list:
-        print(f"{path}")
+    print("\nIndex: Len: Path element list")
+
+    for i, path_list in enumerate(paths_to_fix_list):
+        path = paths.list_to_path(path_list)
+        path_str = str(path)
+        print(f"{i:4}: {len(path_str):4}: {path_list}")
+
+
+def replace_chars(input_string, chars_to_replace, replacement_char):
+    # Create a translation table
+    translation_table = str.maketrans(chars_to_replace, replacement_char * len(chars_to_replace))
+    # Translate the input string using the translation table
+    return input_string.translate(translation_table)
 
 
 def fix_paths(paths_to_fix_sorted_list, args):
@@ -335,7 +346,6 @@ def fix_paths(paths_to_fix_sorted_list, args):
     print("\nCopying files to a new directory...")
     shortened_dir = args.base_dir + "_shortened"
     copy_directory(args.base_dir, shortened_dir)
-    print()
 
     # Copy the sorted list into a regular list of parts (lists) to operate on
     paths_to_fix_list = [list(Path(path).parts) for path in paths_to_fix_sorted_list]
@@ -347,13 +357,20 @@ def fix_paths(paths_to_fix_sorted_list, args):
 
     print_paths_to_fix_list(paths_to_fix_list)  # debugging
 
+    # Store the original paths for later
+    original_paths_list = copy.deepcopy(paths_to_fix_list)
+
     # 2. fix the paths with illegal Windows characters
 
-    ########
-    for path in paths_to_fix_list:
-        for i, part in enumerate(path):
-            for char in config.ILLEGAL_WINDOWS_CHARS:
-                path[i] = part.replace(char, "_")
+    # 2.A. Fix the paths 
+    for path_elements_list in paths_to_fix_list:
+        for i_column, element in enumerate(path_elements_list):
+            path_elements_list[i_column] = replace_chars(element, config.ILLEGAL_WINDOWS_CHARS, "_")
+
+    print_paths_to_fix_list(paths_to_fix_list)  # debugging
+
+    # 2.B. Apply the changes to disk
+
 
     # 3. shorten the paths
 
