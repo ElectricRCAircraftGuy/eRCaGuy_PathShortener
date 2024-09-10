@@ -19,6 +19,18 @@ def path_to_list(path):
     return path_elements_list
 
 
+def get_len(path_elements_list):
+    """
+    Get the path length (number of characters) in the reconstructed path which is made up of 
+    this passed-in list of path elements. 
+
+    Ex: List ["aaa", "bb", "c"] would turn into path "aaa/bb/c", and therefore the length would be
+    8. 
+    """
+    num_chars = len(str(pathlib.Path(*path_elements_list)))
+    return num_chars
+
+
 # def path_read_element(path, index):
     # path_elements_list = path_to_list(path)
     # return path_elements_list[index]

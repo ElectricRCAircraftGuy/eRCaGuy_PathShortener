@@ -388,20 +388,27 @@ def fix_paths(paths_to_fix_sorted_list, args):
 
     # return
 
+    print()
     for path in paths_to_fix_list:
         num_columns = len(path)
-        last_column = num_columns - 1
-        i_column = last_column
-        num_chars = len(paths.list_to_path(path))  ###### convert to str first?
+        i_last_column = num_columns - 1
+        i_column = i_last_column
+        path_len = paths.get_len(path)
 
-        while num_chars > config.MAX_ALLOWED_PATH_LEN:
-            while i_column >= 0:
+        print(f"Path: {path}")
+        print(f"  num_columns: {num_columns}")
+        print(f"  i_last_column: {i_last_column}")
+        print(f"  path_len: {path_len}")
+
+
+        # while num_chars > config.MAX_ALLOWED_PATH_LEN:
+        #     while i_column >= 0:
                 
 
-                i_column -= 1
+        #         i_column -= 1
 
-            for i_column, element in enumerate(path):
-                path[i_column] = replace_chars(element, config.ILLEGAL_WINDOWS_CHARS, "_")
+        #     for i_column, element in enumerate(path):
+        #         path[i_column] = replace_chars(element, config.ILLEGAL_WINDOWS_CHARS, "_")
 
 
 
