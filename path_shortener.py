@@ -26,6 +26,7 @@ rm -r test_paths_shortened; ./path_shortener.py test_paths
 
 # Local imports
 import config
+import paths
 
 # Third party imports
 from sortedcontainers import SortedList
@@ -67,25 +68,25 @@ def copy_directory(src, dst):
     print("  Note: if symlinks were in the source directory, they were copied as real files.")
 
 
-class AnyStruct:
-    """
-    A class to store any data structure.
-    Ex: 
-    ```py
-    any_struct = AnyStruct()
-    any_struct.my_dict = {}
-    ```
-    See my answer: https://stackoverflow.com/a/77161026/4561887
-    """
-    pass
+# class AnyStruct:
+#     """
+#     A class to store any data structure.
+#     Ex: 
+#     ```py
+#     any_struct = AnyStruct()
+#     any_struct.my_dict = {}
+#     ```
+#     See my answer: https://stackoverflow.com/a/77161026/4561887
+#     """
+#     pass
 
 
-class Paths:
-    def __init__(self):
-        # intended data to be stored herein
-        self.original_path = None
-        self.fixed_path = None  # the Windows-friendly path with no illegal chars in Windows
-        self.shortened_path = None
+# class Paths:
+#     def __init__(self):
+#         # intended data to be stored herein
+#         self.original_path = None
+#         self.fixed_path = None  # the Windows-friendly path with no illegal chars in Windows
+#         self.shortened_path = None
 
 
 class PathStats:
@@ -141,26 +142,26 @@ def print_global_variables(module):
     print()
 
 
-def add_to_dict(dict, key, value):
-    """
-    Add a key-value pair to a dictionary if the key does not already exist.
-    - Note: for sets, this is not necessary. Simply use `my_set.add(item)` instead. 
-    """
-    if key not in dict:
-        dict[key] = value
-    else:
-        # print(f"Key '{key}' already exists with value '{dict[key]}'")
-        pass
+# def add_to_dict(dict, key, value):
+#     """
+#     Add a key-value pair to a dictionary if the key does not already exist.
+#     - Note: for sets, this is not necessary. Simply use `my_set.add(item)` instead. 
+#     """
+#     if key not in dict:
+#         dict[key] = value
+#     else:
+#         # print(f"Key '{key}' already exists with value '{dict[key]}'")
+#         pass
 
 
-def add_to_sorted_dict(sorted_dict, key, value):
-    """
-    Add multiple values under the same key by using a list as the value
-    """
-    if key not in sorted_dict:
-        sorted_dict[key] = []
+# def add_to_sorted_dict(sorted_dict, key, value):
+#     """
+#     Add multiple values under the same key by using a list as the value
+#     """
+#     if key not in sorted_dict:
+#         sorted_dict[key] = []
 
-    sorted_dict[key].append(value)
+#     sorted_dict[key].append(value)
 
 
 def walk_directory(path):
@@ -251,15 +252,6 @@ def parse_args():
     return args
 
 
-def remove_illegal_windows_chars(sorted_illegal_paths_list, sorted_paths_dict_of_lists):
-    """
-    Remove illegal Windows characters from paths in `sorted_illegal_paths_list`, while also
-    fixing inside `sorted_paths_dict_of_lists` all paths which were changed in the former.
-    """
-
-    pass
-
-
 def print_paths_to_fix(paths_to_fix_sorted_list):
     """
     Print the paths that need to be fixed.
@@ -325,6 +317,11 @@ def get_paths_to_fix(all_paths_set):
     return paths_to_fix_sorted_list, path_stats
 
 
+def print_paths_to_fix_list(paths_to_fix_list):
+    for path in paths_to_fix_list:
+        print(f"{path}")
+
+
 def fix_paths(paths_to_fix_sorted_list, args):
     """
     Fix the paths in `paths_to_fix_sorted_list`: 
@@ -340,18 +337,23 @@ def fix_paths(paths_to_fix_sorted_list, args):
     copy_directory(args.base_dir, shortened_dir)
     print()
 
-    # Copy the sorted list into a regular list to operate on
-    paths_to_fix_list = list(paths_to_fix_sorted_list)
-
-    # debugging
-    # for path in paths_to_fix_list:
-    #     print(f"{path}")
-
-    #///////////// PICK BACK UP HERE!
+    # Copy the sorted list into a regular list of parts (lists) to operate on
+    paths_to_fix_list = [list(Path(path).parts) for path in paths_to_fix_sorted_list]
 
     # 1. fix the root path
 
+    for path in paths_to_fix_list:
+        path[0] = shortened_dir
+
+    print_paths_to_fix_list(paths_to_fix_list)  # debugging
+
     # 2. fix the paths with illegal Windows characters
+
+    ########
+    for path in paths_to_fix_list:
+        for i, part in enumerate(path):
+            for char in config.ILLEGAL_WINDOWS_CHARS:
+                path[i] = part.replace(char, "_")
 
     # 3. shorten the paths
 

@@ -4,29 +4,18 @@
 Custom path manipulation library. 
 """
 
-import os
+import pathlib
 
 
 def list_to_path(path_elements_list):
     # NB: `*` here is the unpacking operator, and it's used to pass the unpacked individual elements
     # of the list as arguments to this func.
-    return os.path.join(*path_elements_list)
+    path = pathlib.Path(*path_elements_list)
+    return path
 
 
 def path_to_list(path):
-    path_elements_list = []
-
-    while True:
-        head, tail = os.path.split(path)
-        path = head
-        
-        if tail:
-            path_elements_list.insert(0, tail)
-        else:
-            if head:
-                path_elements_list.insert(0, head)
-            break
-
+    path_elements_list = list(path.parts)
     return path_elements_list
 
 
