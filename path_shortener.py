@@ -350,7 +350,7 @@ def fix_paths(paths_to_fix_sorted_list, args):
     # Copy the sorted list into a regular list of parts (lists) to operate on
     paths_to_fix_list = [list(Path(path).parts) for path in paths_to_fix_sorted_list]
 
-    # 1. fix the root path
+    # fix the root path
 
     for path in paths_to_fix_list:
         path[0] = shortened_dir
@@ -360,14 +360,60 @@ def fix_paths(paths_to_fix_sorted_list, args):
     # Store the original paths for later
     original_paths_list = copy.deepcopy(paths_to_fix_list)
 
+    # Fix all paths: including illegal Windows characters and path length, all at once in one
+    # pass, row by row and column by column
+    #
+    # Algorithm:
+    # 1. Start at the top and go down the path list, fixing longest paths first
+    #   TODO: evaluate later if fixing **deepest** paths first is better/faster.
+    # 1. For each path:
+    #   1. Iterate over all columns, beginning at the far right (last column). 
+    #   1. For a given column, replace illegal chars, then shorten it. 
+    #   1. Go to the next column to the left. Repeat: replace illegal chars, then shorten it, etc.
+    #   1. When done with all columns, check the path length. If still too long, shorten paths 
+    #      even more, starting at the right-most column.
+    #   1. ONCE THE PATH has all illegal chars removed, AND is short enough, make that change to the
+    #      disk one column at a time, starting at the end (right-most) column. 
+    #   1. If it is the last (far right) column and that path is a dir, NOT a file, then you must
+    #      also propagate that change across all other paths in the list at this parent path AND
+    #      column index since that dir was just renamed and we need to account for it elsewhere
+    #      in our list. So, iterate over ALL PATHS from 0 to end, including the path we are 
+    #      currently on since it doesn't matter. 
+    #   1. If it is any column < last_column_i, then you must propagate that change across all other
+    #      paths in the list at this parent path AND column index since that dir was just renamed
+    #      and we need to account for it elsewhere in our list. 
+    # 1. Done: all paths are fixed, and all changes have been propagated to the disk.
+    # 1. Double-check that all paths are now valid and short enough by walking the directory tree
+    #    and checking each path length one last time. 
+
+    # return
+
+    for path in paths_to_fix_list:
+        num_columns = len(path)
+        last_column = num_columns - 1
+        i_column = last_column
+        num_chars = len(paths.list_to_path(path))  ###### convert to str first?
+
+        while num_chars > config.MAX_ALLOWED_PATH_LEN:
+            while i_column >= 0:
+                
+
+                i_column -= 1
+
+            for i_column, element in enumerate(path):
+                path[i_column] = replace_chars(element, config.ILLEGAL_WINDOWS_CHARS, "_")
+
+
+
+
     # 2. fix the paths with illegal Windows characters
 
     # 2.A. Fix the paths 
-    for path_elements_list in paths_to_fix_list:
-        for i_column, element in enumerate(path_elements_list):
-            path_elements_list[i_column] = replace_chars(element, config.ILLEGAL_WINDOWS_CHARS, "_")
+    # for path_elements_list in paths_to_fix_list:
+    #     for i_column, element in enumerate(path_elements_list):
+    #         path_elements_list[i_column] = replace_chars(element, config.ILLEGAL_WINDOWS_CHARS, "_")
 
-    print_paths_to_fix_list(paths_to_fix_list)  # debugging
+    # print_paths_to_fix_list(paths_to_fix_list)  # debugging
 
     # 2.B. Apply the changes to disk
 
@@ -382,29 +428,6 @@ def fix_paths(paths_to_fix_sorted_list, args):
 
 
     # remove_illegal_windows_chars(sorted_illegal_paths_list_2, sorted_paths_dict_of_lists_2)
-
-
-    # #########3
-    # # Update the root dir in all paths
-    # for path_len, paths in sorted_paths_dict_of_lists.items():
-    #     for path in paths:
-    #         new_path = path.replace(args.base_dir, shortened_dir)
-    #         print(f"  {path} -> {new_path}")
-
-    # # Fix paths with illegal Windows chars 
-    # #
-
-
-
-    # ############3
-    # # Remove the paths that are not too long 
-    # for path_len, paths in sorted_paths_dict_of_lists.items():
-    #     print(f"{path_len:4}: ", end="")
-    #     for i, path in enumerate(paths):
-    #         if i == 0:
-    #             print(f"{path}")
-    #         else:
-    #             print(f"      {path}")
 
 
 def main():

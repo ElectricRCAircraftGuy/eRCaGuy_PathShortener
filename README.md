@@ -129,3 +129,14 @@ Sun. 8 Sept. 2024
     p.parts
     len(p.parts)
     ```
+1. [ ] Algorithm to implement:
+    Don't fix names beforehand. Instead:
+    Start at top and go down the path list.
+
+    For a given path:
+
+    Iterate over all columns, beginning at the far right. For a given column, Replace illegal chars, then shorten it. Make that change to the disk. Propagate it across all other paths in the list at this column index IF IT IS A DIR NOT A FILE, including the path we are currently on. Go to the column to the left. Repeat.
+
+    When done with all columns, check the path length. If still too long, shorten paths even more, starting at the right-most column.
+
+    Done.
