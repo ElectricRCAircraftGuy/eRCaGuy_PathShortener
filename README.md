@@ -142,8 +142,9 @@ Sun. 8 Sept. 2024
     Done.
 
 Tue. 10 Sept. 2024
-1. [ ] Continue work in `fix_paths()` and `shorten_segment()` functions. 
+1. [x] Continue work in `fix_paths()` and `shorten_segment()` functions. 
 1. [ ] figure out where to actually make the changes onto the disk, too, including after replacing
     illegal chars. Probably make a new function for this, and call it after shortening the paths,
     comparing the new to the old paths and only making changes in the list of paths and on the disk
     if they differ. 
+    - See "# Propagate the change across all paths in the list" for where to pick back up.

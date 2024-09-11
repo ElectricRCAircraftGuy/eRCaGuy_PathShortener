@@ -349,7 +349,7 @@ def shorten_segment(path_elements_list, allowed_segment_len):
         Ex: "home/user/documents/some_super_v...0001.txt"
     """
 
-    #################
+    ################# TODO
     # Join the path elements into a string
     path_str = paths.list_to_path(path_elements_list)
     # Shorten the path segment
@@ -410,9 +410,9 @@ def fix_paths(paths_to_fix_sorted_list, args):
     # 1. Double-check that all paths are now valid and short enough by walking the directory tree
     #    and checking each path length one last time. 
 
-    # return
-
     print()
+
+    # 1. Fix paths in the list, but NOT on the disk yet
     for i, path in enumerate(paths_to_fix_list):
         num_columns = len(path)
         i_last_column = num_columns - 1
@@ -436,15 +436,24 @@ def fix_paths(paths_to_fix_sorted_list, args):
         # any further
         while path_len > config.MAX_ALLOWED_PATH_LEN and allowed_segment_len > 0:
             while i_column >= 0:
-                # Replace illegal Windows characters
+                # Replace illegal Windows characters for ALL columns
                 path[i_column] = replace_chars(path[i_column], config.ILLEGAL_WINDOWS_CHARS, "_")
 
-                # Shorten the path
-                path[i_column] = shorten_segment(path[0:i_column], allowed_segment_len)
-                allowed_segment_len -= 1
+                # Shorten the path only if the path is still too long
+                path_len = paths.get_len(path)  # update
+                if path_len > config.MAX_ALLOWED_PATH_LEN:            
+                    path[i_column] = shorten_segment(path[i_column], allowed_segment_len)
+                
+                # Propagate the change across all paths in the list
+                ############
+                path_chunk = path[0:i_column + 1]
+                for path2 in paths_to_fix_list:
+                    if path2[0:i_column + 1] == path_chunk:
+                        path2[i_column] = path[i_column]
 
                 i_column -= 1
 
+            allowed_segment_len -= 1
             path_len = paths.get_len(path)  # update
 
         # debugging
@@ -462,35 +471,15 @@ def fix_paths(paths_to_fix_sorted_list, args):
             print("Exiting.")
             exit(EXIT_FAILURE)
 
-    # Double-check that all paths are now valid and short enough by walking the directory tree
-    # and checking each path length one last time.
-    ##########
+        
+
+    # 2. Fix paths on the disk
     
 
+    # 3. Double-check that all paths are now valid and short enough by walking the directory tree
+    #    and checking each path length one last time.
+    ##########
 
-
-    # 2. fix the paths with illegal Windows characters
-
-    # 2.A. Fix the paths 
-    # for path_elements_list in paths_to_fix_list:
-    #     for i_column, element in enumerate(path_elements_list):
-    #         path_elements_list[i_column] = replace_chars(element, config.ILLEGAL_WINDOWS_CHARS, "_")
-
-    # print_paths_to_fix_list(paths_to_fix_list)  # debugging
-
-    # 2.B. Apply the changes to disk
-
-
-    # 3. shorten the paths
-
-    # Fix the root path in the copy
-    # for path_len, paths in sorted_paths_dict_of_lists_2.items():
-    #     for i, path in enumerate(paths):
-    #         new_path = path.replace(args.base_dir, shortened_dir)
-    #         sorted_paths_dict_of_lists_2[path_len][i] = new_path
-
-
-    # remove_illegal_windows_chars(sorted_illegal_paths_list_2, sorted_paths_dict_of_lists_2)
 
 
 def main():
