@@ -412,11 +412,12 @@ def fix_paths(paths_to_fix_sorted_list, args):
 
     print()
 
+    # return #########
+
     # 1. Fix paths in the list, but NOT on the disk yet
     for i, path in enumerate(paths_to_fix_list):
         num_columns = len(path)
         i_last_column = num_columns - 1
-        i_column = i_last_column
         path_len = paths.get_len(path)
 
         # Allow up to this many chars in a given file or folder segment, + the extra chars used
@@ -432,25 +433,22 @@ def fix_paths(paths_to_fix_sorted_list, args):
         print(f"  i_last_column: {i_last_column}")
         print(f"  path_len: {path_len}")
 
+        # Replace illegal Windows characters for ALL columns
+        i_column = i_last_column
+        while i_column >= 0:
+            path[i_column] = replace_chars(path[i_column], config.ILLEGAL_WINDOWS_CHARS, "_")
+            i_column -= 1
+
         # Shorten the path until it is short enough OR until we cannot shorten the segments 
         # any further
         while path_len > config.MAX_ALLOWED_PATH_LEN and allowed_segment_len > 0:
+            i_column = i_last_column
             while i_column >= 0:
-                # Replace illegal Windows characters for ALL columns
-                path[i_column] = replace_chars(path[i_column], config.ILLEGAL_WINDOWS_CHARS, "_")
-
                 # Shorten the path only if the path is still too long
                 path_len = paths.get_len(path)  # update
                 if path_len > config.MAX_ALLOWED_PATH_LEN:            
                     path[i_column] = shorten_segment(path[i_column], allowed_segment_len)
                 
-                # Propagate the change across all paths in the list
-                ############
-                path_chunk = path[0:i_column + 1]
-                for path2 in paths_to_fix_list:
-                    if path2[0:i_column + 1] == path_chunk:
-                        path2[i_column] = path[i_column]
-
                 i_column -= 1
 
             allowed_segment_len -= 1
@@ -461,7 +459,7 @@ def fix_paths(paths_to_fix_sorted_list, args):
         print(f"  Shortened path: {path}")
         
         if path_len > config.MAX_ALLOWED_PATH_LEN:
-            print(f"Error: Path is still too long after shortening."
+            print(f"Error: Path is still too long after shortening.")
             
             print(f"  Original path:  {original_paths_list[i]}")
             print(f"  Shortened path: {path}")
@@ -471,6 +469,26 @@ def fix_paths(paths_to_fix_sorted_list, args):
             print("Exiting.")
             exit(EXIT_FAILURE)
 
+        # Propagate the path changes across all paths in the list, AND ON THE DISK, 
+        # from L to R in the columns. 
+       
+        # For all paths ######## this is wrong--just do it for this one path first........
+        for i2, path2 in enumerate(paths_to_fix_list):
+            num_columns2 = len(path2)
+            # For all columns
+            ################
+            for i_column in range(num_columns2):
+                path_chunk_new = path2[0:i_column + 1]
+                path_chunk_old = original_paths_list[i2][0:i_column + 1]
+
+                if path_chunk_new != path_chunk_old:
+                    # 1. Fix it on the disk
+
+                    # 2. Fix it in the list
+                    for path3 in paths_to_fix_list:
+                        ####################
+                        if path2[0:i_column + 1] == path_chunk:
+                            path2[i_column] = path[i_column]
         
 
     # 2. Fix paths on the disk

@@ -36,11 +36,12 @@ words = [
     "forest", "trees", "whisper", "wind", config.ILLEGAL_WINDOWS_CHARS
 ]
 
-def generate_human_readable_name(num_words):
+def generate_human_readable_name(max_num_words):
     """
-    Generate a human-readable name by combining random words.
+    Generate a human-readable name by combining 1 to `max_num_words, inclusive, random words.
     """
     
+    num_words = random.randint(1, max_num_words)
     name = '_'.join(random.choice(words) for _ in range(num_words))
     return name
 
@@ -64,7 +65,7 @@ def create_long_name_structure(
         num_folders, 
         num_files_per_folder, 
         num_empty_dirs_per_folder, 
-        num_words, 
+        max_num_words, 
         folder_depth
     ):
     """
@@ -77,7 +78,7 @@ def create_long_name_structure(
 
         for _ in range(num_folders):
             # Generate a human-readable folder name
-            folder_name = generate_human_readable_name(num_words)
+            folder_name = generate_human_readable_name(max_num_words)
             folder_path = os.path.join(current_dir, folder_name)
             os.makedirs(folder_path, exist_ok=True)
 
@@ -91,7 +92,7 @@ def create_long_name_structure(
                     random_illegal_chars = get_random_chars(config.ILLEGAL_WINDOWS_CHARS, 1, 3)
 
                 file_name = (
-                    generate_human_readable_name(num_words) + random_illegal_chars + extension)
+                    generate_human_readable_name(max_num_words) + random_illegal_chars + extension)
                 file_path = os.path.join(folder_path, file_name)
                 with open(file_path, 'w') as f:
                     f.write("This is a test file.")
@@ -103,7 +104,7 @@ def create_long_name_structure(
                 if i % 2 == 1:  # for odd dirs, add some illegal chars too
                     random_illegal_chars = get_random_chars(config.ILLEGAL_WINDOWS_CHARS, 1, 3)
                 
-                empty_dir_name = generate_human_readable_name(num_words) + random_illegal_chars
+                empty_dir_name = generate_human_readable_name(max_num_words) + random_illegal_chars
                 empty_dir_path = os.path.join(folder_path, empty_dir_name)
                 os.makedirs(empty_dir_path, exist_ok=True)
 
@@ -154,10 +155,10 @@ def main():
     num_folders = 1
     num_files_per_folder = 3
     num_empty_dirs_per_folder = 2
-    num_words = 5  # Number of words to combine for folder and file names
+    max_num_words = 10  # Max number of words to combine for folder and file names
     folder_depth = 8  # Depth of nested folders
     create_long_name_structure(base_dir, num_folders, num_files_per_folder, 
-                               num_empty_dirs_per_folder, num_words, folder_depth)
+                               num_empty_dirs_per_folder, max_num_words, folder_depth)
 
     print(f"Test directory structure created at: {base_dir}\n")
 
