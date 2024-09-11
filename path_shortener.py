@@ -333,6 +333,7 @@ def replace_chars(input_string, chars_to_replace, replacement_char):
     return input_string.translate(translation_table)
 
 
+shorten_segment_call_cnt = 0
 def shorten_segment(path_elements_list, allowed_segment_len):
     """
     Shorten a segment of a path to a given length.
@@ -350,11 +351,16 @@ def shorten_segment(path_elements_list, allowed_segment_len):
     """
 
     ################# TODO
-    # Join the path elements into a string
-    path_str = paths.list_to_path(path_elements_list)
-    # Shorten the path segment
-    shortened_path_str = path_str[:allowed_segment_len]
-    return shortened_path_str
+    # # Join the path elements into a string
+    # path_str = paths.list_to_path(path_elements_list)
+    # # Shorten the path segment
+    # shortened_path_str = path_str[:allowed_segment_len]
+    # return shortened_path_str
+    
+    global shorten_segment_call_cnt
+    shorten_segment_call_cnt += 1
+    str = f"{shorten_segment_call_cnt:0{allowed_segment_len}d}"
+    return str
 
 
 def fix_paths(paths_to_fix_sorted_list, args):
@@ -412,20 +418,12 @@ def fix_paths(paths_to_fix_sorted_list, args):
 
     print()
 
-    # return #########
-
     # 1. Fix paths in the list, but NOT on the disk yet
     for i, path in enumerate(paths_to_fix_list):
         num_columns = len(path)
         i_last_column = num_columns - 1
         path_len = paths.get_len(path)
 
-        # Allow up to this many chars in a given file or folder segment, + the extra chars used
-        # to identify the segment. 
-        # - The shortening process below will continually shorten this value until the path is
-        #   short enough, OR until this value reaches 0, at which point it cannot be shortened 
-        #   any further.
-        allowed_segment_len = 12
 
         # debugging
         print(f"Path: {path}")
@@ -441,6 +439,13 @@ def fix_paths(paths_to_fix_sorted_list, args):
 
         # Shorten the path until it is short enough OR until we cannot shorten the segments 
         # any further
+        #
+        # Allow up to this many chars in a given file or folder segment, + the extra chars used to
+        # identify the segment. 
+        # - The shortening process below will continually shorten this value until the path is short
+        #   enough, OR until this value reaches 0, at which point it cannot be shortened any
+        #   further.
+        allowed_segment_len = 12
         while path_len > config.MAX_ALLOWED_PATH_LEN and allowed_segment_len > 0:
             i_column = i_last_column
             while i_column >= 0:
@@ -471,28 +476,35 @@ def fix_paths(paths_to_fix_sorted_list, args):
 
         # Propagate the path changes across all paths in the list, AND ON THE DISK, 
         # from L to R in the columns. 
-       
-        # For all paths ######## this is wrong--just do it for this one path first........
-        for i2, path2 in enumerate(paths_to_fix_list):
-            num_columns2 = len(path2)
-            # For all columns
-            ################
-            for i_column in range(num_columns2):
-                path_chunk_new = path2[0:i_column + 1]
-                path_chunk_old = original_paths_list[i2][0:i_column + 1]
 
-                if path_chunk_new != path_chunk_old:
-                    # 1. Fix it on the disk
+        # For all columns in this path
+        for i_column in range(num_columns):
+            path_chunk_list_new = path[0:i_column + 1]
+            path_chunk_list_old = original_paths_list[i][0:i_column + 1]
 
-                    # 2. Fix it in the list
-                    for path3 in paths_to_fix_list:
-                        ####################
-                        if path2[0:i_column + 1] == path_chunk:
-                            path2[i_column] = path[i_column]
-        
+            path_chunk_new = Path(*path_chunk_list_new)
+            path_chunk_old = Path(*path_chunk_list_old)
 
-    # 2. Fix paths on the disk
-    
+            if path_chunk_new != path_chunk_old:
+                # 1. Fix it (for both files *and* folders!) on the disk
+                if path_chunk_new.exists():
+                    print(f"Error: Path chunk \"{path_chunk_new}\" already exists. Exiting.")
+                    print("  Note: you can try manually fixing this, OR modifying the code to"
+                        + "  gracefully handle it.")
+                    # TODO: consider gracefully handling this instead of exiting here.
+                    exit(EXIT_FAILURE)
+
+                path_chunk_old.rename(path_chunk_new)
+
+                # 2. If the path chunk is a directory, it could exist in other paths in the list, 
+                # so fix it in all other places in the list
+                if path_chunk_new.is_dir():
+                    for path2 in paths_to_fix_list:
+                        path2_chunk_list = path2[0:i_column + 1]
+                        if path2_chunk_list == path_chunk_list_old:
+                            # update it
+                            path2[0:i_column + 1] = path[0:i_column + 1]
+            
 
     # 3. Double-check that all paths are now valid and short enough by walking the directory tree
     #    and checking each path length one last time.

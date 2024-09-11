@@ -148,3 +148,8 @@ Tue. 10 Sept. 2024
     comparing the new to the old paths and only making changes in the list of paths and on the disk
     if they differ. 
     - See "# Propagate the change across all paths in the list" for where to pick back up.
+1. [ ] Add/fix these:
+    paths_original_list  # how the paths first were before doing any renaming
+    paths_from_list      # rename paths FROM this 
+    paths_to_list        # rename paths TO this
+1. [ ] begin with 24 chars shortened segment length, not 12 chars?
