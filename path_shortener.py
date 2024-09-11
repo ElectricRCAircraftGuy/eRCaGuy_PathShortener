@@ -333,6 +333,30 @@ def replace_chars(input_string, chars_to_replace, replacement_char):
     return input_string.translate(translation_table)
 
 
+def shorten_segment(path_elements_list, allowed_segment_len):
+    """
+    Shorten a segment of a path to a given length.
+
+    Inputs:
+    - path_elements_list: list of path elements up to the segment to shorten
+        Ex: ["home", "user", "documents", "some_super_very_really_long_filename.txt"]
+    - allowed_segment_len: the quantity of original characters in the segment to keep during
+        shortening.
+        Ex: 12
+
+    Returns:
+    - shortened_path_str: the shortened path segment as a string
+        Ex: "home/user/documents/some_super_v...0001.txt"
+    """
+
+    #################
+    # Join the path elements into a string
+    path_str = paths.list_to_path(path_elements_list)
+    # Shorten the path segment
+    shortened_path_str = path_str[:allowed_segment_len]
+    return shortened_path_str
+
+
 def fix_paths(paths_to_fix_sorted_list, args):
     """
     Fix the paths in `paths_to_fix_sorted_list`: 
@@ -389,27 +413,59 @@ def fix_paths(paths_to_fix_sorted_list, args):
     # return
 
     print()
-    for path in paths_to_fix_list:
+    for i, path in enumerate(paths_to_fix_list):
         num_columns = len(path)
         i_last_column = num_columns - 1
         i_column = i_last_column
         path_len = paths.get_len(path)
 
+        # Allow up to this many chars in a given file or folder segment, + the extra chars used
+        # to identify the segment. 
+        # - The shortening process below will continually shorten this value until the path is
+        #   short enough, OR until this value reaches 0, at which point it cannot be shortened 
+        #   any further.
+        allowed_segment_len = 12
+
+        # debugging
         print(f"Path: {path}")
         print(f"  num_columns: {num_columns}")
         print(f"  i_last_column: {i_last_column}")
         print(f"  path_len: {path_len}")
 
+        # Shorten the path until it is short enough OR until we cannot shorten the segments 
+        # any further
+        while path_len > config.MAX_ALLOWED_PATH_LEN and allowed_segment_len > 0:
+            while i_column >= 0:
+                # Replace illegal Windows characters
+                path[i_column] = replace_chars(path[i_column], config.ILLEGAL_WINDOWS_CHARS, "_")
 
-        # while num_chars > config.MAX_ALLOWED_PATH_LEN:
-        #     while i_column >= 0:
-                
+                # Shorten the path
+                path[i_column] = shorten_segment(path[0:i_column], allowed_segment_len)
+                allowed_segment_len -= 1
 
-        #         i_column -= 1
+                i_column -= 1
 
-        #     for i_column, element in enumerate(path):
-        #         path[i_column] = replace_chars(element, config.ILLEGAL_WINDOWS_CHARS, "_")
+            path_len = paths.get_len(path)  # update
 
+        # debugging
+        print(f"  Original path:  {original_paths_list[i]}")
+        print(f"  Shortened path: {path}")
+        
+        if path_len > config.MAX_ALLOWED_PATH_LEN:
+            print(f"Error: Path is still too long after shortening."
+            
+            print(f"  Original path:  {original_paths_list[i]}")
+            print(f"  Shortened path: {path}")
+            
+            # TODO: consider not exiting here. Perhaps I want to keep on going and let the user
+            # manually fix any insufficiently-shortened paths themselves afterwards. 
+            print("Exiting.")
+            exit(EXIT_FAILURE)
+
+    # Double-check that all paths are now valid and short enough by walking the directory tree
+    # and checking each path length one last time.
+    ##########
+    
 
 
 

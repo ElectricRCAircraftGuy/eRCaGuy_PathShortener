@@ -11,7 +11,7 @@ A tool to shorten paths on Linux (4096 chars max path length) &amp; Mac so that 
 
 1. Install dependencies:
     ```bash
-    pip install -r requirements.txt
+    pip3 install -r requirements.txt
     ```
 
 1. Edit `config.py` as needed. 
@@ -140,3 +140,10 @@ Sun. 8 Sept. 2024
     When done with all columns, check the path length. If still too long, shorten paths even more, starting at the right-most column.
 
     Done.
+
+Tue. 10 Sept. 2024
+1. [ ] Continue work in `fix_paths()` and `shorten_segment()` functions. 
+1. [ ] figure out where to actually make the changes onto the disk, too, including after replacing
+    illegal chars. Probably make a new function for this, and call it after shortening the paths,
+    comparing the new to the old paths and only making changes in the list of paths and on the disk
+    if they differ. 
