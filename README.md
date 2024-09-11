@@ -112,10 +112,10 @@ Sat. 7 Sept. 2024
 1. [x] when detecting illegal Windows chars, copy the offending paths into a new sorted list data structure. 
     It is called `sorted_illegal_paths_list`
 1. [x] after the copy, deep copy both lists for a before and after effect
-1. [ ] ...and fix root paths in both new lists: illegal Windows chars and too-long paths 
-1. [ ] fix illegal chars paths. Parallel make the changes in the too-long paths list if the path was in that list too (find a way to search for it, using its length as the index key) 
-1. [ ] fix too long paths
-1. [ ] print the before and after paths.
+1. [x] ...and fix root paths in both new lists: illegal Windows chars and too-long paths 
+1. [x] fix illegal chars paths. Parallel make the changes in the too-long paths list if the path was in that list too (find a way to search for it, using its length as the index key) 
+1. [x] fix too long paths
+1. [x] print the before and after paths.
 1. [ ] produce before and after `tree` lists. `meld` compare the before and after tree lists. When meld is closed, let my program terminate
 
 Sun. 8 Sept. 2024
@@ -129,7 +129,7 @@ Sun. 8 Sept. 2024
     p.parts
     len(p.parts)
     ```
-1. [ ] Algorithm to implement:
+1. [x] Algorithm to implement:
     Don't fix names beforehand. Instead:
     Start at top and go down the path list.
 
@@ -143,12 +143,12 @@ Sun. 8 Sept. 2024
 
 Tue. 10 Sept. 2024
 1. [x] Continue work in `fix_paths()` and `shorten_segment()` functions. 
-1. [ ] figure out where to actually make the changes onto the disk, too, including after replacing
+1. [x] figure out where to actually make the changes onto the disk, too, including after replacing
     illegal chars. Probably make a new function for this, and call it after shortening the paths,
     comparing the new to the old paths and only making changes in the list of paths and on the disk
     if they differ. 
     - See "# Propagate the change across all paths in the list" for where to pick back up.
-1. [ ] Add/fix these:
+1. [x] Add/fix these:
     paths_original_list  # how the paths first were before doing any renaming
     paths_from_list      # rename paths FROM this 
     paths_to_list        # rename paths TO this

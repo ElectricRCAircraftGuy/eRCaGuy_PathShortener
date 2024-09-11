@@ -317,10 +317,10 @@ def get_paths_to_fix(all_paths_set):
     return paths_to_fix_sorted_list, path_stats
 
 
-def print_paths_to_fix_list(paths_to_fix_list):
+def print_paths_list(paths_TO_list):
     print("\nIndex: Len: Path element list")
 
-    for i, path_list in enumerate(paths_to_fix_list):
+    for i, path_list in enumerate(paths_TO_list):
         path = paths.list_to_path(path_list)
         path_str = str(path)
         print(f"{i:4}: {len(path_str):4}: {path_list}")
@@ -363,6 +363,21 @@ def shorten_segment(path_elements_list, allowed_segment_len):
     return str
 
 
+def update_paths_in_list(paths_to_update_list, path, path_chunk_list_old, i_column):
+    """
+    Update all paths in a list to reflect a change in a path chunk.
+
+    Inputs:
+    - paths_to_update_list: the list of paths to update
+    ...
+    """
+    for path2 in paths_to_update_list:
+        path2_chunk_list = path2[0:i_column + 1]
+        if path2_chunk_list == path_chunk_list_old:
+            # update this path in the list
+            path2[0:i_column + 1] = path[0:i_column + 1]
+
+
 def fix_paths(paths_to_fix_sorted_list, args):
     """
     Fix the paths in `paths_to_fix_sorted_list`: 
@@ -370,6 +385,10 @@ def fix_paths(paths_to_fix_sorted_list, args):
     1. Replace symlinks with real files. 
     2. Replace illegal Windows characters with valid ones.
     3. Shorten the paths to a length that is acceptable on Windows.
+
+    paths_original_list  # how the paths first were before doing any renaming
+    paths_FROM_list      # rename paths FROM this 
+    paths_TO_list        # rename paths TO this
     """
 
     # Note: this also automatically fixes the symlinks by replacing them with real files. 
@@ -377,18 +396,22 @@ def fix_paths(paths_to_fix_sorted_list, args):
     shortened_dir = args.base_dir + "_shortened"
     copy_directory(args.base_dir, shortened_dir)
 
-    # Copy the sorted list into a regular list of parts (lists) to operate on
-    paths_to_fix_list = [list(Path(path).parts) for path in paths_to_fix_sorted_list]
+    # Copy the sorted list into a regular list of parts (lists) to operate on. 
+    # - Rename paths TO this.
+    paths_TO_list = [list(Path(path).parts) for path in paths_to_fix_sorted_list]
 
     # fix the root path
 
-    for path in paths_to_fix_list:
+    for path in paths_TO_list:
         path[0] = shortened_dir
 
-    print_paths_to_fix_list(paths_to_fix_list)  # debugging
+    print_paths_list(paths_TO_list)  # debugging
 
-    # Store the original paths for later
-    original_paths_list = copy.deepcopy(paths_to_fix_list)
+    # Store the original paths for later.
+    # This is how the paths first were before doing any renaming.
+    paths_original_list = copy.deepcopy(paths_TO_list)
+    paths_FROM_list = copy.deepcopy(paths_TO_list)  # rename paths FROM this
+
 
     # Fix all paths: including illegal Windows characters and path length, all at once in one
     # pass, row by row and column by column
@@ -418,15 +441,14 @@ def fix_paths(paths_to_fix_sorted_list, args):
 
     print()
 
-    # 1. Fix paths in the list, but NOT on the disk yet
-    for i, path in enumerate(paths_to_fix_list):
+    # 1. Fix paths in the FROM and TO lists, and on the disk
+    for i, path in enumerate(paths_TO_list):
         num_columns = len(path)
         i_last_column = num_columns - 1
         path_len = paths.get_len(path)
 
-
         # debugging
-        print(f"Path: {path}")
+        print(f"Path: {i:4}: {path_len:4}: {path}")
         print(f"  num_columns: {num_columns}")
         print(f"  i_last_column: {i_last_column}")
         print(f"  path_len: {path_len}")
@@ -442,9 +464,9 @@ def fix_paths(paths_to_fix_sorted_list, args):
         #
         # Allow up to this many chars in a given file or folder segment, + the extra chars used to
         # identify the segment. 
-        # - The shortening process below will continually shorten this value until the path is short
-        #   enough, OR until this value reaches 0, at which point it cannot be shortened any
-        #   further.
+        # - The shortening process below will continually shorten `allowed_segment_len` until the
+        #   path is short enough, OR until this value reaches 0, at which point it cannot be
+        #   shortened any further.
         allowed_segment_len = 12
         while path_len > config.MAX_ALLOWED_PATH_LEN and allowed_segment_len > 0:
             i_column = i_last_column
@@ -460,27 +482,29 @@ def fix_paths(paths_to_fix_sorted_list, args):
             path_len = paths.get_len(path)  # update
 
         # debugging
-        print(f"  Original path:  {original_paths_list[i]}")
-        print(f"  Shortened path: {path}")
+        print(f"  Original path:        {paths_original_list[i]}")
+        print(f"  FROM path:            {paths_FROM_list[i]}")
+        print(f"  TO (shortened) path:  {path}")
         
         if path_len > config.MAX_ALLOWED_PATH_LEN:
             print(f"Error: Path is still too long after shortening.")
             
-            print(f"  Original path:  {original_paths_list[i]}")
-            print(f"  Shortened path: {path}")
+            print(f"  Original path:        {paths_original_list[i]}")
+            print(f"  FROM path:            {paths_FROM_list[i]}")
+            print(f"  TO (shortened) path:  {path}")
             
             # TODO: consider not exiting here. Perhaps I want to keep on going and let the user
             # manually fix any insufficiently-shortened paths themselves afterwards. 
             print("Exiting.")
             exit(EXIT_FAILURE)
 
-        # Propagate the path changes across all paths in the list, AND ON THE DISK, 
+        # Propagate the path changes across all paths in the FROM and TO lists, AND ON THE DISK, 
         # from L to R in the columns. 
 
         # For all columns in this path
         for i_column in range(num_columns):
             path_chunk_list_new = path[0:i_column + 1]
-            path_chunk_list_old = original_paths_list[i][0:i_column + 1]
+            path_chunk_list_old = paths_FROM_list[i][0:i_column + 1]
 
             path_chunk_new = Path(*path_chunk_list_new)
             path_chunk_old = Path(*path_chunk_list_old)
@@ -494,21 +518,36 @@ def fix_paths(paths_to_fix_sorted_list, args):
                     # TODO: consider gracefully handling this instead of exiting here.
                     exit(EXIT_FAILURE)
 
+                # Perform the actual rename **on the disk!**
                 path_chunk_old.rename(path_chunk_new)
 
                 # 2. If the path chunk is a directory, it could exist in other paths in the list, 
-                # so fix it in all other places in the list
+                # so fix it in all other places in the two lists: the FROM and TO lists.
                 if path_chunk_new.is_dir():
-                    for path2 in paths_to_fix_list:
-                        path2_chunk_list = path2[0:i_column + 1]
-                        if path2_chunk_list == path_chunk_list_old:
-                            # update it
-                            path2[0:i_column + 1] = path[0:i_column + 1]
-            
+                    update_paths_in_list(paths_FROM_list, path, path_chunk_list_old, i_column)
+                    update_paths_in_list(paths_TO_list, path, path_chunk_list_old, i_column)            
 
-    # 3. Double-check that all paths are now valid and short enough by walking the directory tree
+
+    # 2. Double-check that all paths are now valid and short enough by walking the directory tree
     #    and checking each path length one last time.
     ##########
+
+
+    # 3. Print before and after paths 
+
+    print("\n\nBefore and after paths:\n"
+        + "Index: Len: Original path\n"
+        + "   ->  Len: Shortened path\n")
+    for i_path in range(len(paths_original_list)):
+        original_path_str = str(Path(*paths_original_list[i_path]))
+        TO_path_str = str(Path(*paths_TO_list[i_path]))
+
+        print(f"{i_path:4}: {len(original_path_str):4}: {original_path_str}\n"
+            + f"   -> {len(TO_path_str):4}: {TO_path_str}\n")
+
+
+    # 4. `meld`-compare the `tree` output of the original and shortened directories
+    #########
 
 
 
