@@ -38,6 +38,7 @@ import inspect
 import os
 import pprint
 import shutil
+import subprocess
 import textwrap
 
 from pathlib import Path 
@@ -547,8 +548,29 @@ def fix_paths(paths_to_fix_sorted_list, args):
 
 
     # 4. `meld`-compare the `tree` output of the original and shortened directories
-    #########
+    
+    tree_before = subprocess.run(["tree", args.base_dir], 
+                        check=True, text=True, capture_output=True)
+    tree_after = subprocess.run(["tree", shortened_dir], 
+                        check=True, text=True, capture_output=True)
+    
+    tree_before_filename = args.base_dir + "_tree_before.txt"
+    tree_after_filename  = args.base_dir + "_tree_after.txt"
 
+    # Write the tree outputs to files
+    with open(tree_before_filename, "w") as f:
+        f.write(tree_before.stdout)
+    with open(tree_after_filename, "w") as f:
+        f.write(tree_after.stdout)
+    
+    print("'meld'-comparing the original and shortened directories...\n"
+       + f"  Original:  {args.base_dir}\n"
+       + f"  Shortened: {shortened_dir}\n")
+
+    subprocess.run(["meld", tree_before_filename, tree_after_filename], check=True)
+
+    ######### I don't like the way this looks! Instead, write the before and after paths to a file
+    #and compare them, rather than comparing the tree output!
 
 
 def main():

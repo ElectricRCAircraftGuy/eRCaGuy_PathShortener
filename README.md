@@ -153,3 +153,6 @@ Tue. 10 Sept. 2024
     paths_from_list      # rename paths FROM this 
     paths_to_list        # rename paths TO this
 1. [ ] begin with 24 chars shortened segment length, not 12 chars?
+
+Sat. 14 Sept. 2024
+1. [ ] 
