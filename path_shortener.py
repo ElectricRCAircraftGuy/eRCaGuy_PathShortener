@@ -109,7 +109,6 @@ class PathStats:
         print(f"  symlink_path_count: {self.symlink_path_count}")
         print(f"  illegal_windows_char_path_count: {self.illegal_windows_char_path_count}")
         print(f"  paths_to_fix_count: {self.paths_to_fix_count}")
-        print()
 
 
 def print_global_variables(module):
@@ -271,7 +270,7 @@ def add_unique_to_sorted_list(sorted_list, value):
         sorted_list.add(value)
 
 
-def get_paths_to_fix(all_paths_set):
+def get_paths_to_fix(all_paths_set, max_path_len_already_used=0):
     """
     Get the paths that need to be fixed and return them in a sorted list reverse-sorted by path
     length.
@@ -284,7 +283,7 @@ def get_paths_to_fix(all_paths_set):
     paths_to_fix_sorted_list = SortedList(key=lambda path: -len(path))
     path_stats = PathStats()
 
-    path_stats.max_allowed_path_len = config.MAX_ALLOWED_PATH_LEN - len("_shortened")
+    path_stats.max_allowed_path_len = config.MAX_ALLOWED_PATH_LEN - max_path_len_already_used
     path_stats.max_len = 0
     path_stats.total_path_count = len(all_paths_set)
     path_stats.too_long_path_count = 0
@@ -379,7 +378,7 @@ def update_paths_in_list(paths_to_update_list, path, path_chunk_list_old, i_colu
             path2[0:i_column + 1] = path[0:i_column + 1]
 
 
-def fix_paths(paths_to_fix_sorted_list, args):
+def fix_paths(paths_to_fix_sorted_list, path_stats, args, max_path_len_already_used):
     """
     Fix the paths in `paths_to_fix_sorted_list`: 
 
@@ -529,10 +528,36 @@ def fix_paths(paths_to_fix_sorted_list, args):
                     update_paths_in_list(paths_FROM_list, path, path_chunk_list_old, i_column)
                     update_paths_in_list(paths_TO_list, path, path_chunk_list_old, i_column)            
 
+    print("\n")
+
 
     # 2. Double-check that all paths are now valid and short enough by walking the directory tree
     #    and checking each path length one last time.
-    ##########
+    
+    all_paths_set2 = walk_directory(shortened_dir)
+    paths_to_fix_sorted_list2, path_stats2 = get_paths_to_fix(all_paths_set2)
+    
+    print("BEFORE fixing and shortening paths:")
+    path_stats.print()
+    print()
+    print("AFTER fixing and shortening paths:")
+    path_stats2.print()
+    print()
+
+    if len(paths_to_fix_sorted_list2) == 0:
+        print("Path fixing and shortening has been successful!\n"
+            + "All paths are now fixed for Windows (illegal chars removed, no symlinks, "
+            + "and short enough).")
+        print(f"  Max len BEFORE:       {path_stats.max_len} + {max_path_len_already_used} = "
+            + f"{path_stats.max_len + max_path_len_already_used}")
+        print(f"  Max len AFTER:        {path_stats2.max_len}")
+        print(f"  Max allowed path len: {path_stats2.max_allowed_path_len} chars")
+    else:
+        print("Error: some paths are still too long after shortening.")
+        print_paths_to_fix(paths_to_fix_sorted_list2)
+        # TODO: gracefully handle this instead of exiting here.
+        print("Exiting.")
+        exit(EXIT_FAILURE)
 
 
     # 3. Print before and after paths. Also write them to files for later `meld` comparison.
@@ -628,15 +653,17 @@ def main():
 
     all_paths_set = walk_directory(args.base_dir)
     # pprint.pprint(all_paths_set)
-    paths_to_fix_sorted_list, path_stats = get_paths_to_fix(all_paths_set)
+    paths_to_fix_sorted_list, path_stats = get_paths_to_fix(
+        all_paths_set, max_path_len_already_used=len("_shortened"))
     path_stats.print()
+    print()
 
     if len(paths_to_fix_sorted_list) == 0:
         print("Nothing to do. Exiting...")
         exit(EXIT_SUCCESS)
 
     print_paths_to_fix(paths_to_fix_sorted_list)
-    fix_paths(paths_to_fix_sorted_list, args)
+    fix_paths(paths_to_fix_sorted_list, path_stats, args, len("_shortened"))
 
     print("Done.")
     print("Sponsor me for more: https://github.com/sponsors/ElectricRCAircraftGuy")
