@@ -398,7 +398,7 @@ def fix_paths(paths_to_fix_sorted_list, args):
     copy_directory(args.base_dir, shortened_dir)
 
     # Copy the sorted list into a regular list of parts (lists) to operate on. 
-    # - Rename paths TO this.
+    # - Paths will be renamed TO this.
     paths_TO_list = [list(Path(path).parts) for path in paths_to_fix_sorted_list]
 
     # fix the root path
@@ -411,7 +411,8 @@ def fix_paths(paths_to_fix_sorted_list, args):
     # Store the original paths for later.
     # This is how the paths first were before doing any renaming.
     paths_original_list = copy.deepcopy(paths_TO_list)
-    paths_FROM_list = copy.deepcopy(paths_TO_list)  # rename paths FROM this
+    # Paths will be renamed FROM this.
+    paths_FROM_list = copy.deepcopy(paths_TO_list)  
 
 
     # Fix all paths: including illegal Windows characters and path length, all at once in one
@@ -534,21 +535,71 @@ def fix_paths(paths_to_fix_sorted_list, args):
     ##########
 
 
-    # 3. Print before and after paths 
+    # 3. Print before and after paths. Also write them to files for later `meld` comparison.
+
+    output_dir = os.path.join(shortened_dir + "_OUTPUT")
+    os.makedirs(output_dir, exist_ok=True)
+
+    paths_before_filename = os.path.join(output_dir, args.base_dir + "__paths_list_before.txt")
+    paths_after_filename  = os.path.join(output_dir, args.base_dir + "__paths_list_after.txt")
 
     print("\n\nBefore and after paths:\n"
         + "Index: Len: Original path\n"
         + "   ->  Len: Shortened path\n")
-    for i_path in range(len(paths_original_list)):
-        original_path_str = str(Path(*paths_original_list[i_path]))
-        TO_path_str = str(Path(*paths_TO_list[i_path]))
+    
+    # Write the before and after paths to files
+    with (open(paths_before_filename, "w") as file_before, 
+          open(paths_after_filename, "w") as file_after):    
+        
+        file_before.write("BEFORE (original) paths:\n")
+        file_after.write("AFTER (fixed & shortened) paths:\n")
+        
+        str_to_write = "Index: Len: Path\n\n"
+        file_before.write(str_to_write)
+        file_after.write(str_to_write)
 
-        print(f"{i_path:4}: {len(original_path_str):4}: {original_path_str}\n"
-            + f"   -> {len(TO_path_str):4}: {TO_path_str}\n")
+        # 1. The standard path view
+        str_to_write = "Standard path view:\n"
+        file_before.write(str_to_write)
+        file_after.write(str_to_write)
+        for i_path in range(len(paths_original_list)):
+            original_path_str = str(Path(*paths_original_list[i_path]))
+            TO_path_str = str(Path(*paths_TO_list[i_path]))
+
+            print(f"{i_path:4}: {len(original_path_str):4}: {original_path_str}\n"
+                + f"   -> {len(TO_path_str):4}: {TO_path_str}\n")
+            
+            file_before.write(f"{i_path:4}: {len(original_path_str):4}: {original_path_str}\n")
+            file_after.write(f"{i_path:4}: {len(TO_path_str):4}: {TO_path_str}\n")
+
+        # 2. The list view
+        str_to_write = "\nList path view:\n"
+        file_before.write(str_to_write)
+        file_after.write(str_to_write)
+        for i_path in range(len(paths_original_list)):
+            original_path_str = str(Path(*paths_original_list[i_path]))
+            TO_path_str = str(Path(*paths_TO_list[i_path]))
+
+            file_before.write(f"{i_path:4}: {len(original_path_str):4}: {paths_original_list[i_path]}\n")
+            file_after.write(f"{i_path:4}: {len(TO_path_str):4}: {paths_TO_list[i_path]}\n")
+
+    # The file is closed automatically when the `with` block is exited.
+
+    print("'meld'-comparing the original and shortened directories...\n"
+       + f"NB: IN MELD, BE SURE TO CLICK THE \"Keep highlighting\" BUTTON AT THE TOP!\n"
+       + f"  Original:  {args.base_dir}/\n"
+       + f"  Shortened: {shortened_dir}/\n"
+       + f"Manually close 'meld' to continue.\n"
+    )
+
+    subprocess.run(["meld", paths_before_filename, paths_after_filename], check=True)
 
 
     # 4. `meld`-compare the `tree` output of the original and shortened directories
-    
+    #
+    # UPDATE: I don't like the way the above tree comparison looks! Instead, write the before and
+    # after paths to a file and compare them, rather than comparing the tree output! Done above now.
+    """
     tree_before = subprocess.run(["tree", args.base_dir], 
                         check=True, text=True, capture_output=True)
     tree_after = subprocess.run(["tree", shortened_dir], 
@@ -568,9 +619,7 @@ def fix_paths(paths_to_fix_sorted_list, args):
        + f"  Shortened: {shortened_dir}\n")
 
     subprocess.run(["meld", tree_before_filename, tree_after_filename], check=True)
-
-    ######### I don't like the way this looks! Instead, write the before and after paths to a file
-    #and compare them, rather than comparing the tree output!
+    """
 
 
 def main():
@@ -588,6 +637,9 @@ def main():
 
     print_paths_to_fix(paths_to_fix_sorted_list)
     fix_paths(paths_to_fix_sorted_list, args)
+
+    print("Done.")
+    print("Sponsor me for more: https://github.com/sponsors/ElectricRCAircraftGuy")
 
 
 if __name__ == "__main__":
