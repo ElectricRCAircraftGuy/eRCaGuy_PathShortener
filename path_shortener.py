@@ -22,6 +22,15 @@ rm -r test_paths_shortened; ./path_shortener.py test_paths
 ./path_shortener.py -F /path/to/directory
 ```
 
+
+References:
+
+1. https://docs.python.org/3/library/pathlib.html
+1. VSCode Python tutorial, incl. debugging Python!: 
+   https://code.visualstudio.com/docs/python/python-tutorial
+1. 
+
+
 """
 
 # Local imports
@@ -357,7 +366,7 @@ def hash_to_hex(input_string, hex_len):
 
 
 shorten_segment_call_cnt = 0
-def shorten_segment(path_elements_list, allowed_segment_len):
+def shorten_segment(path_elements_list, allowed_segment_len, is_dir):
     """
     Shorten a segment of a path to a given length.
 
@@ -368,6 +377,9 @@ def shorten_segment(path_elements_list, allowed_segment_len):
       keep during shortening. The basename is the last element in the path_elements_list, or 
       "some_super_very_really_long_filename.txt" in the example above.
         Ex: 12
+    - is_dir: whether the segment is a directory or a file; True if it is a directory, False if it
+      is a file.
+        Ex: True
 
     Returns:
     - shortened_path_str: the shortened path segment as a string
@@ -380,18 +392,32 @@ def shorten_segment(path_elements_list, allowed_segment_len):
     str = f"{shorten_segment_call_cnt:0{allowed_segment_len}d}"
     return str
     ```
-
-    #############
-
-    hash_to_hex() example:
-
-    # Example usage
-    input_string = "example_string"
-    hashed_string = hash_to_hex(input_string, 4)
-    print(f"Original string: {input_string}")
-    print(f"Hashed string: {hashed_string}")
-
     """
+
+    path = Path(*path_elements_list)
+
+    if not path.exists():
+        print(f"Error: Path \"{path}\" does not exist. Exiting.")
+        exit(EXIT_FAILURE)
+
+    is_dir = os.path.isdir(path)
+
+    stem_old = path.stem        # ex: "some_file"
+    suffix_old = path.suffix    # ex: ".txt"
+
+    stem_new = stem_old[:allowed_segment_len] + "." + hash_to_hex(stem_old, 4)
+    
+    # debugging
+    print(f"  stem_old: {stem_old}")
+    print(f"  stem_new: {stem_new}")
+    
+    exit()
+
+
+    # +10 because names will be appended with `.abcd_NAME`, for instance, which is that many chars. 
+    too_long_len = allowed_segment_len + 10
+
+    file_or_dir_name = path_elements_list[-1]
 
     ### Check the path to this new basename and ensure it is unique! If not, convert the hash str
     # to a 4-digit number, increment it by 1, and try again until it is unique.
@@ -522,7 +548,7 @@ def fix_paths(paths_to_fix_sorted_list, path_stats, args, max_path_len_already_u
                 # Shorten the path only if the path is still too long
                 path_len = paths.get_len(path)  # update
                 if path_len > config.MAX_ALLOWED_PATH_LEN:            
-                    path[i_column] = shorten_segment(path[i_column], allowed_segment_len)
+                    path[i_column] = shorten_segment(path[:i_column], allowed_segment_len)
                 
                 i_column -= 1
 

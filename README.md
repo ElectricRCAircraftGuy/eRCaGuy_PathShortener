@@ -47,8 +47,8 @@ Remove bad chars in filenames. Then in dirs one at a time, renaming the entire c
 
 Ex: 
 `Abcdefghijklmnopqrstuvwxyz0123456789.txt` (36 chars + extension) turns into:  
-`Abcdefghijkl...0001.txt` - 19 chars + extension, and:  
-`Abcdefghijkl...0001_NAME.txt` - 24 chars + extension.
+`Abcdefghijkl.0001.txt` - 12 + 5 chars + extension, and:  
+`Abcdefghijkl.0001_NAME.txt` - 12 + 10 chars + extension.
 
 The additional filename called `Abcdefghijkl...0001_NAME.txt` will contain the full original filename:
 ```
