@@ -152,9 +152,12 @@ Tue. 10 Sept. 2024
     paths_original_list  # how the paths first were before doing any renaming
     paths_from_list      # rename paths FROM this 
     paths_to_list        # rename paths TO this
-1. [ ] begin with 24 chars shortened segment length, not 12 chars?
+1. [x] begin with 24 chars shortened segment length, not 12 chars?
 
 Sun. 15 Sept. 2024
 1. [x] finish `meld` comparison of before and after paths 
 1. [x] In `fix_paths()`, double-check that all paths are short enough by walking the directory tree again and checking lengths one last time 
-1. [ ] Write the `shorten_segment()` function [this is a lot of work!]
+1. [wip] Write the `shorten_segment()` function [this is a lot of work!]
+
+Mon. 16 Sept. 2024
+1. [ ] Save the "Before and after paths" output to a file. 

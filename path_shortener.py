@@ -359,18 +359,19 @@ def hash_to_hex(input_string, hex_len):
     hash_object.update(input_string.encode('utf-8'))
     
     # Get the hexadecimal digest of the hash
-    hex_digest = hash_object.hexdigest()
+    hex_digest = hash_object.hexdigest().upper()
     hex_digest = hex_digest[:hex_len]
     
     return hex_digest
 
 
 shorten_segment_call_cnt = 0
-def shorten_segment(path_elements_list, allowed_segment_len, is_dir):
+def shorten_segment(segment_long, allowed_segment_len):
     """
     Shorten a segment of a path to a given length.
 
     Inputs:
+    ########
     - path_elements_list: list of path elements up to the segment to shorten
         Ex: ["home", "user", "documents", "some_super_very_really_long_filename.txt"]
     - allowed_segment_len: the quantity of original characters in the **basename** of the segment to
@@ -394,46 +395,41 @@ def shorten_segment(path_elements_list, allowed_segment_len, is_dir):
     ```
     """
 
-    path = Path(*path_elements_list)
-
-    if not path.exists():
-        print(f"Error: Path \"{path}\" does not exist. Exiting.")
-        exit(EXIT_FAILURE)
-
-    is_dir = os.path.isdir(path)
+    path = Path(segment_long)
 
     stem_old = path.stem        # ex: "some_file"
-    suffix_old = path.suffix    # ex: ".txt"
+    stem_new = stem_old
 
-    stem_new = stem_old[:allowed_segment_len] + "." + hash_to_hex(stem_old, 4)
+    HASH_LEN = 4
+
+    # NB: +1 for the . before the hash. Ex: ".abcd"
+    if len(stem_old) > allowed_segment_len + HASH_LEN + 1:  
+        # Shorten the stem
+        stem_new = stem_old[:allowed_segment_len] + "@" + hash_to_hex(stem_old, HASH_LEN)
     
     # debugging
-    print(f"  stem_old: {stem_old}")
-    print(f"  stem_new: {stem_new}")
+    # print(f"\nallowed_segment_len: {allowed_segment_len}")
+    # print(f"path_elements_list: {path_elements_list}")
+    # print(f"stem_old: {stem_old}")
+    # print(f"stem_new: {stem_new}")
     
-    exit()
+    segment_short = str(path.with_stem(stem_new))
 
+    # debugging
+    print(f"\nallowed_segment_len: {allowed_segment_len}")
+    print(f"stem_old:       {stem_old}")
+    print(f"stem_new:       {stem_new}")
+    print(f"segment_long:   {segment_long}")
+    print(f"segment_short:  {segment_short}")
 
-    # +10 because names will be appended with `.abcd_NAME`, for instance, which is that many chars. 
-    too_long_len = allowed_segment_len + 10
+    ######### store new max path length into a global, or passed-out, list of lists here based on
+    # the fact that for dirs you will also get a file named "000.dir_name@abcd_NAME" stored inside
+    # the dir, and for files you will get a file named "file_name@abcd_NAME.txt" stored in the same
+    # dir as the original file.
+    # - Then use that list of lists of lengths outside this func to see if you need to shorten the
+    #   path even more, or if we are done.
 
-    file_or_dir_name = path_elements_list[-1]
-
-    ### Check the path to this new basename and ensure it is unique! If not, convert the hash str
-    # to a 4-digit number, increment it by 1, and try again until it is unique.
-    # Throw an error if we end up at ffff and still cannot find a unique name.
-    # Add a TODO to gracefully handle such a case in the future.
-
-
-    ################# TODO
-    # # Join the path elements into a string
-    # path_str = paths.list_to_path(path_elements_list)
-    # # Shorten the path segment
-    # shortened_path_str = path_str[:allowed_segment_len]
-    # return shortened_path_str
-
-
-    
+    return segment_short
 
 
 def update_paths_in_list(paths_to_update_list, path, path_chunk_list_old, i_column):
@@ -541,14 +537,16 @@ def fix_paths(paths_to_fix_sorted_list, path_stats, args, max_path_len_already_u
         # - The shortening process below will continually shorten `allowed_segment_len` until the
         #   path is short enough, OR until this value reaches 0, at which point it cannot be
         #   shortened any further.
-        allowed_segment_len = 12
-        while path_len > config.MAX_ALLOWED_PATH_LEN and allowed_segment_len > 0:
+        allowed_segment_len = config.MAX_ALLOWED_SEGMENT_LEN
+        while (path_len > config.MAX_ALLOWED_PATH_LEN 
+               and allowed_segment_len > 0):
             i_column = i_last_column
-            while i_column >= 0:
+            # Use `> 0` so that we do NOT shorten the base dir; ex: "whatever_shortened/" 
+            while i_column > 0:
                 # Shorten the path only if the path is still too long
                 path_len = paths.get_len(path)  # update
                 if path_len > config.MAX_ALLOWED_PATH_LEN:            
-                    path[i_column] = shorten_segment(path[:i_column], allowed_segment_len)
+                    path[i_column] = shorten_segment(path[i_column], allowed_segment_len)
                 
                 i_column -= 1
 
