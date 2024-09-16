@@ -34,6 +34,7 @@ from sortedcontainers import SortedList
 # Python imports
 import argparse
 import copy
+import hashlib
 import inspect 
 import os
 import pprint
@@ -333,6 +334,28 @@ def replace_chars(input_string, chars_to_replace, replacement_char):
     return input_string.translate(translation_table)
 
 
+def hash_to_hex(input_string, hex_len):
+    """
+    Create a hexadecimal hash of a string, returning only the first `hex_len` characters
+    of the hex hash string.
+
+    Note that uniqueness is not guaranteed, but is likely. A reasonable yet still very
+    small `hex_len` to use is 4.
+    """
+
+    # Create a SHA-256 hash object
+    hash_object = hashlib.sha256()
+    
+    # Update the hash object with the bytes of the input string
+    hash_object.update(input_string.encode('utf-8'))
+    
+    # Get the hexadecimal digest of the hash
+    hex_digest = hash_object.hexdigest()
+    hex_digest = hex_digest[:hex_len]
+    
+    return hex_digest
+
+
 shorten_segment_call_cnt = 0
 def shorten_segment(path_elements_list, allowed_segment_len):
     """
@@ -341,14 +364,40 @@ def shorten_segment(path_elements_list, allowed_segment_len):
     Inputs:
     - path_elements_list: list of path elements up to the segment to shorten
         Ex: ["home", "user", "documents", "some_super_very_really_long_filename.txt"]
-    - allowed_segment_len: the quantity of original characters in the segment to keep during
-        shortening.
+    - allowed_segment_len: the quantity of original characters in the **basename** of the segment to
+      keep during shortening. The basename is the last element in the path_elements_list, or 
+      "some_super_very_really_long_filename.txt" in the example above.
         Ex: 12
 
     Returns:
     - shortened_path_str: the shortened path segment as a string
         Ex: "home/user/documents/some_super_v...0001.txt"
+    
+    Trivial example to just return a 0-prefixed, fixed-len incrementing number as a string:
+    ```py
+    global shorten_segment_call_cnt
+    shorten_segment_call_cnt += 1
+    str = f"{shorten_segment_call_cnt:0{allowed_segment_len}d}"
+    return str
+    ```
+
+    #############
+
+    hash_to_hex() example:
+
+    # Example usage
+    input_string = "example_string"
+    hashed_string = hash_to_hex(input_string, 4)
+    print(f"Original string: {input_string}")
+    print(f"Hashed string: {hashed_string}")
+
     """
+
+    ### Check the path to this new basename and ensure it is unique! If not, convert the hash str
+    # to a 4-digit number, increment it by 1, and try again until it is unique.
+    # Throw an error if we end up at ffff and still cannot find a unique name.
+    # Add a TODO to gracefully handle such a case in the future.
+
 
     ################# TODO
     # # Join the path elements into a string
@@ -356,11 +405,9 @@ def shorten_segment(path_elements_list, allowed_segment_len):
     # # Shorten the path segment
     # shortened_path_str = path_str[:allowed_segment_len]
     # return shortened_path_str
+
+
     
-    global shorten_segment_call_cnt
-    shorten_segment_call_cnt += 1
-    str = f"{shorten_segment_call_cnt:0{allowed_segment_len}d}"
-    return str
 
 
 def update_paths_in_list(paths_to_update_list, path, path_chunk_list_old, i_column):
@@ -617,7 +664,8 @@ def fix_paths(paths_to_fix_sorted_list, path_stats, args, max_path_len_already_u
        + f"Manually close 'meld' to continue.\n"
     )
 
-    subprocess.run(["meld", paths_before_filename, paths_after_filename], check=True)
+    #########
+    # subprocess.run(["meld", paths_before_filename, paths_after_filename], check=True)
 
 
     # 4. `meld`-compare the `tree` output of the original and shortened directories
