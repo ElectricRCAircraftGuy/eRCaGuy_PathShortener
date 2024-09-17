@@ -396,8 +396,12 @@ def shorten_segment(i_row, i_column,
 
     # NB: +1 for the char before the hash. Ex: "@abcd"
     if len(stem_old) > allowed_segment_len + HASH_LEN + 1:  
+        # Hash the original path to better ensure uniqueness
+        path_original = paths_original_list[i_row][i_column]
+        # print(f"Path original: {path_original}")  # debugging
+
         # Shorten the stem
-        stem_new = stem_old[:allowed_segment_len] + "@" + hash_to_hex(stem_old, HASH_LEN)
+        stem_new = stem_old[:allowed_segment_len] + "@" + hash_to_hex(path_original, HASH_LEN)
     
     segment_short = str(path_TO.with_stem(stem_new))
 
