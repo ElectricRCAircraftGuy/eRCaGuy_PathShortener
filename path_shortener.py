@@ -367,11 +367,13 @@ def hash_to_hex(input_string, hex_len):
 
 shorten_segment_call_cnt = 0
 def shorten_segment(i_row, i_column, 
-                    paths_FROM_list, paths_TO_list, paths_noillegals_list, paths_namefiles_list, 
+                    paths_FROM_list, paths_TO_list, paths_longest_namefiles_list, 
                     allowed_segment_len):
     """
-    Shorten a segment of a path to a given length, and return the shortened segment as a string.
+    Shorten the segment in-place inside the paths_TO_list, while also updating the
+    paths_longest_namefiles_list.
     
+    OLD PLACEHOLDER CODE:
     Trivial example to just return a 0-prefixed, fixed-len incrementing number as a string:
     ```py
     global shorten_segment_call_cnt
@@ -380,6 +382,8 @@ def shorten_segment(i_row, i_column,
     return str
     ```
     """
+
+    # 1. Shorten the segment in the paths_TO_list
 
     segment_long = paths_TO_list[i_row][i_column]
     path_TO = Path(segment_long)
@@ -396,6 +400,9 @@ def shorten_segment(i_row, i_column,
     
     segment_short = str(path_TO.with_stem(stem_new))
 
+    paths_TO_list[i_row][i_column] = segment_short
+    paths_longest_namefiles_list[i_row][i_column] = segment_short
+
     # debugging
     print(f"\nallowed_segment_len: {allowed_segment_len}")
     print(f"stem_old:       {stem_old}")
@@ -403,14 +410,17 @@ def shorten_segment(i_row, i_column,
     print(f"segment_long:   {segment_long}")
     print(f"segment_short:  {segment_short}")
 
-    # Add a namefile path which will later store the full name of the original file or dir
-    # prior to removing illegal chars or shortening. 
+    # 2. Update the paths_longest_namefiles_list if we are at the right-most column only, since
+    #    that is the namefile whose path will determine the max path length for this path
+    #    shortening operation.
 
-    path_chunk_list_FROM = paths_FROM_list[i_row][0:i_column + 1]
-    path_chunk_FROM = Path(*path_chunk_list_FROM)
-    is_dir = path_chunk_FROM.is_dir()
+    i_last_column = len(paths_TO_list[i_row]) - 1
+    if i_column == i_last_column:
+        # We are at the right-most column, so also capture the namefile path into its list
 
-    return segment_short
+        is_dir = paths.is_dir(paths_FROM_list[i_row])
+        namefile_path = paths.make_namefile_name(segment_short, is_dir)
+        paths_longest_namefiles_list[i_row][i_column] = namefile_path
 
 
 def update_paths_in_list(paths_to_update_list, path, path_chunk_list_old, i_column):
@@ -441,10 +451,16 @@ def fix_paths(paths_to_fix_sorted_list, path_stats, args, max_path_len_already_u
     paths_TO_list         # rename paths TO this
     paths_noillegals_list # how the paths will look after removing illegal chars, but withOUT 
                           #   shortening
-    paths_namefiles_list  # A list of lists of the namefile `pathlib.Path()`s, meaning the 
-                          #   "my_file_name@ABCD_NAME.txt" and "000@my_dir_name@ABCD_NAME.txt" type 
-                          #   files which store the full name of the original 
+    paths_longest_namefiles_list # A list of the right-most namefiles ONLY, where namefiles are the 
+                          #   "my_file_name@ABCD_NAME.txt" and 
+                          #   "my_dir_name@ABCD/!my_dir_name@ABCD_NAME.txt" type 
+                          #   files which will store the full name of the original 
                           #   file or dir prior to removing illegal chars or shortening.
+                          # - Only the right-most namefiles are needed in this list since 
+                          #   they are the longest ones in any given path which will 
+                          #   determine the max path length for that path.
+                          # - The path is still stored as a list of path elements, same as the 
+                          #   other lists above. 
     
     """
 
@@ -470,7 +486,7 @@ def fix_paths(paths_to_fix_sorted_list, path_stats, args, max_path_len_already_u
     # Other lists: see descriptions above. 
     paths_FROM_list = copy.deepcopy(paths_TO_list)
     paths_noillegals_list = copy.deepcopy(paths_TO_list) ########## don't need this maybe????
-    paths_namefiles_list = copy.deepcopy(paths_TO_list)
+    paths_longest_namefiles_list = copy.deepcopy(paths_TO_list)
 
 
     # Fix all paths: including illegal Windows characters and path length, all at once in one
@@ -513,10 +529,19 @@ def fix_paths(paths_to_fix_sorted_list, path_stats, args, max_path_len_already_u
         print(f"  i_last_column: {i_last_column}")
         print(f"  path_len: {path_len}")
 
-        # Replace illegal Windows characters for ALL columns
+        # Replace illegal Windows characters for ALL columns, adding a namefile for each right-most
+        # column if a rename is needed.
         i_column = i_last_column
         while i_column >= 0:
             path[i_column] = replace_chars(path[i_column], config.ILLEGAL_WINDOWS_CHARS, "_")
+
+            ##########
+            # if path[i_column] != paths_original_list[i_row][i_column]:
+            #     # If the path was renamed, then it will need a namefile to store its original name.
+            #     is_dir = paths.is_dir(paths_FROM_list[i_row])
+            #     namefile_path = paths.make_namefile_name(path[i_column], is_dir)
+            #     paths_longest_namefiles_list[i_row][i_column] = namefile_path
+
             paths_noillegals_list[i_row][i_column] = path[i_column]
             i_column -= 1
 
@@ -528,6 +553,7 @@ def fix_paths(paths_to_fix_sorted_list, path_stats, args, max_path_len_already_u
         # - The shortening process below will continually shorten `allowed_segment_len` until the
         #   path is short enough, OR until this value reaches 0, at which point it cannot be
         #   shortened any further.
+        path_longest = paths_longest_namefiles_list[i_row]
         allowed_segment_len = config.MAX_ALLOWED_SEGMENT_LEN
         while (path_len > config.MAX_ALLOWED_PATH_LEN 
                and allowed_segment_len > 0):
@@ -536,27 +562,21 @@ def fix_paths(paths_to_fix_sorted_list, path_stats, args, max_path_len_already_u
             while i_column > 0:
                 # Shorten the path only if the path is still too long
                 
-                ##################### CONTINUE WORKING ON THIS!
-                path_len = get_max_namefiles_len(
-                    paths_noillegals_list[i_row], 
-                    paths_original_list[i_row][i_last_column], 
-                    paths_original_list[i_row][i_last_column].is_dir())
-                
-                path_len = paths.get_len(path)  # update
+                path_len = paths.get_len(path_longest)  # update
                 
                 if path_len <= config.MAX_ALLOWED_PATH_LEN:
                     break
 
-                # Shorten the segment
-                path[i_column] = shorten_segment(
-                    i_row, i_column, 
-                    paths_FROM_list, paths_TO_list, paths_noillegals_list, paths_namefiles_list, 
+                # Shorten the segment in-place inside the paths_TO_list
+                shorten_segment(
+                    i_row, i_column,
+                    paths_FROM_list, paths_TO_list, paths_longest_namefiles_list, 
                     allowed_segment_len)
                 
                 i_column -= 1
 
             allowed_segment_len -= 1
-            path_len = paths.get_len(path)  # update
+            path_len = paths.get_len(path_longest)  # update
 
         # debugging
         print(f"  Original path:        {paths_original_list[i_row]}")
@@ -577,6 +597,7 @@ def fix_paths(paths_to_fix_sorted_list, path_stats, args, max_path_len_already_u
 
         # Propagate the path changes across all paths in the FROM, TO, and namefiles lists, AND ON
         # THE DISK, from L to R in the columns. 
+        ############### do work here; need to add all namefiles! ###############
 
         # For all columns in this path, from L to R
         for i_column in range(num_columns):
@@ -603,7 +624,10 @@ def fix_paths(paths_to_fix_sorted_list, path_stats, args, max_path_len_already_u
                 if path_chunk_new.is_dir():
                     update_paths_in_list(paths_FROM_list, path, path_chunk_list_old, i_column)
                     update_paths_in_list(paths_TO_list, path, path_chunk_list_old, i_column)
-                    update_paths_in_list(paths_namefiles_list, path, path_chunk_list_old, i_column)  ####
+                    update_paths_in_list(
+                        paths_longest_namefiles_list, path, path_chunk_list_old, i_column)
+                    ###### not needed I think:
+                    # update_paths_in_list(paths_noillegals_list, path, path_chunk_list_old, i_column)
 
     print("\n")
 
@@ -646,8 +670,9 @@ def fix_paths(paths_to_fix_sorted_list, path_stats, args, max_path_len_already_u
     paths_after_filename  = os.path.join(output_dir, args.base_dir + "__paths_list_after.txt")
 
     print("\n\nBefore and after paths:\n"
-        + "Index: Len: Original path\n"
-        + "   ->  Len: Shortened path\n")
+        + "Index: Len:          Original path\n"
+        + "   ->  Len:          Shortened path\n"
+        + "   longest namefile: Namefile path\n")
     
     # Write the before and after paths to files
     with (open(paths_before_filename, "w") as file_before, 
@@ -667,9 +692,11 @@ def fix_paths(paths_to_fix_sorted_list, path_stats, args, max_path_len_already_u
         for i_path in range(len(paths_original_list)):
             original_path_str = str(Path(*paths_original_list[i_path]))
             TO_path_str = str(Path(*paths_TO_list[i_path]))
+            longest_namefile_str = str(Path(*paths_longest_namefiles_list[i_path]))
 
-            print(f"{i_path:4}: {len(original_path_str):4}: {original_path_str}\n"
-                + f"   -> {len(TO_path_str):4}: {TO_path_str}\n")
+            print(f"{i_path:4}: {len(original_path_str):4}:          {original_path_str}\n"
+                + f"   -> {len(TO_path_str):4}:          {TO_path_str}\n"
+                + f"   longest namefile: {longest_namefile_str}\n")
             
             file_before.write(f"{i_path:4}: {len(original_path_str):4}: {original_path_str}\n")
             file_after.write(f"{i_path:4}: {len(TO_path_str):4}: {TO_path_str}\n")
@@ -694,7 +721,7 @@ def fix_paths(paths_to_fix_sorted_list, path_stats, args, max_path_len_already_u
        + f"Manually close 'meld' to continue.\n"
     )
 
-    #########
+    ######### uncomment when done 
     # subprocess.run(["meld", paths_before_filename, paths_after_filename], check=True)
 
 

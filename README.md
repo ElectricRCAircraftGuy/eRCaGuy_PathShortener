@@ -170,3 +170,8 @@ Mon. 16 Sept. 2024
     - Then use that list of lists of lengths outside this func to see if you need to shorten the
       path even more, or if we are done.
 1. [ ] Save the "Before and after paths" output to a file. 
+1. [ ] Have a list of name files. EVERY row needs a single name file. Because it wouldn't be in the list if it wasn't too long or named wrong, right??
+1. [ ] Also check for duplicates rows/paths in the list! If there are any duplicates we need to deconflict them. 
+How can I guarantee no duplicate path names??
+1. [ ] Maybe store final, shortened values in a set? 
+    Maybe check the disk at the time of renaming, and if a file already exists, convert the hash to a number and increment it until it decollides??
