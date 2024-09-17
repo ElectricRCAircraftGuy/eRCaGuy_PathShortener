@@ -171,7 +171,9 @@ Mon. 16 Sept. 2024
       path even more, or if we are done.
 1. [ ] Save the "Before and after paths" output to a file. 
 1. [ ] Have a list of name files. EVERY row needs a single name file. Because it wouldn't be in the list if it wasn't too long or named wrong, right??
-1. [ ] Also check for duplicates rows/paths in the list! If there are any duplicates we need to deconflict them. 
+1. [nah] Also check for duplicates rows/paths in the list! If there are any duplicates we need to deconflict them. 
+1. [ ] Even better than the above: add collision detection as I go to do the renames. For each row and [0:i_row+1] column, see if the path_TO is already on the disk by checking for it in a full path set which we got by first walking the directory tree. If it already exists, then find my hash number and increment it by one until it doesn't collide. 
+    [ ] if you get increment up to 0xffff in the hash and still are colliding, error out.
 How can I guarantee no duplicate path names??
 1. [ ] Maybe store final, shortened values in a set? 
     Maybe check the disk at the time of renaming, and if a file already exists, convert the hash to a number and increment it until it decollides??
