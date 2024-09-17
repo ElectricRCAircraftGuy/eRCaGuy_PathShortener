@@ -367,7 +367,8 @@ def hash_to_hex(input_string, hex_len):
 
 shorten_segment_call_cnt = 0
 def shorten_segment(i_row, i_column, 
-                    paths_FROM_list, paths_TO_list, paths_longest_namefiles_list, 
+                    paths_original_list, paths_FROM_list, 
+                    paths_TO_list, paths_longest_namefiles_list, 
                     allowed_segment_len):
     """
     Shorten the segment in-place inside the paths_TO_list, while also updating the
@@ -415,7 +416,8 @@ def shorten_segment(i_row, i_column,
     #    shortening operation.
 
     i_last_column = len(paths_TO_list[i_row]) - 1
-    if i_column == i_last_column and segment_short != segment_long:
+    if i_column == i_last_column and (segment_short != segment_long or 
+                                      segment_short != paths_original_list[i_row][i_column]):
         # We are at the right-most column, so also capture the namefile path into its list
 
         is_dir = paths.is_dir(paths_FROM_list[i_row])
@@ -574,7 +576,8 @@ def fix_paths(paths_to_fix_sorted_list, path_stats, args, max_path_len_already_u
                 # Shorten the segment in-place inside the paths_TO_list
                 shorten_segment(
                     i_row, i_column,
-                    paths_FROM_list, paths_TO_list, paths_longest_namefiles_list, 
+                    paths_original_list, paths_FROM_list, 
+                    paths_TO_list, paths_longest_namefiles_list, 
                     allowed_segment_len)
                 
                 i_column -= 1
@@ -652,11 +655,7 @@ def fix_paths(paths_to_fix_sorted_list, path_stats, args, max_path_len_already_u
     if len(paths_to_fix_sorted_list2) == 0:
         print("Path fixing and shortening has been successful!\n"
             + "All paths are now fixed for Windows (illegal chars removed, no symlinks, "
-            + "and short enough).")
-        print(f"  Max len BEFORE:       {path_stats.max_len} + {max_path_len_already_used} = "
-            + f"{path_stats.max_len + max_path_len_already_used}")
-        print(f"  Max len AFTER:        {path_stats2.max_len}")
-        print(f"  Max allowed path len: {path_stats2.max_allowed_path_len} chars")
+            + "and short enough).")    
     else:
         print("Error: some paths are still too long after shortening.")
         print_paths_to_fix(paths_to_fix_sorted_list2)
@@ -664,6 +663,15 @@ def fix_paths(paths_to_fix_sorted_list, path_stats, args, max_path_len_already_u
         print("Exiting.")
         exit(EXIT_FAILURE)
 
+    print("\nMore length stats:")
+    print(f"  Max allowed path len:   {path_stats2.max_allowed_path_len} chars")
+    print(f"  Max len BEFORE:         {path_stats.max_len} + {max_path_len_already_used} = "
+        + f"{path_stats.max_len + max_path_len_already_used}")
+    print(f"  Max len AFTER:          {path_stats2.max_len}")
+    # Get the max length of the namefiles
+    max_namefile_len = max([len(str(Path(*path))) for path in paths_longest_namefiles_list])
+    print(f"  Max namefile len AFTER: {max_namefile_len}")
+    
 
     # 3. Print before and after paths. Also write them to files for later `meld` comparison.
 
@@ -673,7 +681,7 @@ def fix_paths(paths_to_fix_sorted_list, path_stats, args, max_path_len_already_u
     paths_before_filename = os.path.join(output_dir, args.base_dir + "__paths_list_before.txt")
     paths_after_filename  = os.path.join(output_dir, args.base_dir + "__paths_list_after.txt")
 
-    print("\n\nBefore and after paths:\n"
+    print("\nBefore and after paths:\n"
         + "Index:        Len: Original path\n"
         + "   ->         Len: Shortened path\n"
         + "   namefile:  Len: Longest namefile path, OR the same as the \"shortened path\" if "

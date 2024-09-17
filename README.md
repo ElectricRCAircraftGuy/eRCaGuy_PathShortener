@@ -162,7 +162,7 @@ Sun. 15 Sept. 2024
 1. [wip] Write the `shorten_segment()` function [this is a lot of work!]
 
 Mon. 16 Sept. 2024
-1. [ ] path_shortener.py: `shorten_segment()`: 
+1. [x] path_shortener.py: `shorten_segment()`: 
     Store new max path length into a global, or passed-out, list of lists here based on
     the fact that for dirs you will also get a file named "000@dir_name@abcd_NAME" stored inside
     the dir, and for files you will get a file named "file_name@abcd_NAME.txt" stored in the same
