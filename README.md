@@ -50,6 +50,8 @@ Ex:
 `Abcdefghijkl.0001.txt` - 12 + 5 chars + extension, and:  
 `Abcdefghijkl.0001_NAME.txt` - 12 + 10 chars + extension.
 
+UPDATE: use `@` instead of `.` as the separator, because `.` is used to separate the path stem from the extension, which confuses the `pathlib` library when fixing names otherwise. <===
+
 The additional filename called `Abcdefghijkl...0001_NAME.txt` will contain the full original filename:
 ```
 Full filename:
@@ -75,8 +77,8 @@ Then, re-run the file-checker on this new filename. It may get shortened into th
 `0...very lon...0001_NAME.txt`  
 ...where the latter file contains the full original filename:
 ```
-Full filename:
-0...very long dir name
+Full, original filename on Linux:
+really super very long dir name
 ```
 
 Don't do the actual file-system rename of file and dirs R to L until the name is guaranteed to be short enough. Once that occurs, run the actual fileIO call to rename the file or dir.
@@ -160,4 +162,11 @@ Sun. 15 Sept. 2024
 1. [wip] Write the `shorten_segment()` function [this is a lot of work!]
 
 Mon. 16 Sept. 2024
+1. [ ] path_shortener.py: `shorten_segment()`: 
+    Store new max path length into a global, or passed-out, list of lists here based on
+    the fact that for dirs you will also get a file named "000@dir_name@abcd_NAME" stored inside
+    the dir, and for files you will get a file named "file_name@abcd_NAME.txt" stored in the same
+    dir as the original file.
+    - Then use that list of lists of lengths outside this func to see if you need to shorten the
+      path even more, or if we are done.
 1. [ ] Save the "Before and after paths" output to a file. 

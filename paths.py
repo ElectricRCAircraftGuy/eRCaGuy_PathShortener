@@ -31,25 +31,54 @@ def get_len(path_elements_list):
     return num_chars
 
 
-# def path_read_element(path, index):
-    # path_elements_list = path_to_list(path)
-    # return path_elements_list[index]
+def make_namefile_name(original_name, is_dir):
+    """
+    Make a namefile filename for the given original name. 
+    
+    For files:
+    If the original name is "file@ABCD.doc", then the namefile name will be "file@ABCD_NAME.txt". 
+
+    For directories:
+    If the original name is "dir@ABCD", then the namefile name will be "!dir@ABCD_NAME.txt".
+    """
 
 
-# def fix_root_path(sorted_paths_dict_of_lists, sorted_illegal_paths_list, new_root_path):
-#     # Fix the root path of all the paths in the dict and list
-#     for key, paths_list in sorted_paths_dict_of_lists.items():
-#         for i, path in enumerate(paths_list):
-#             new_path = path_replace(path, )
+    if is_dir:
+        # Is a directory
+        namefile_name = "!" + original_name + "_NAME.txt"
+    else:
+        # Is a file
+        path = pathlib.Path(original_name)
+        namefile_name = path.stem + "_NAME.txt"
 
-#             new_path = path.replace(sorted_illegal_paths_list[key], new_root_path)
-#             paths_list[i] = new_path
+    return namefile_name
 
-#     for i, path in enumerate(sorted_illegal_paths_list):
-#         new_path = path.replace(sorted_illegal_paths_list[i], new_root_path)
-#         sorted_illegal_paths_list[i] = new_path
 
-#     return sorted_paths_dict_of_lists, sorted_illegal_paths_list
+def get_max_namefiles_len(
+        path_elements_list, right_most_column_original_name, right_most_column_is_dir):
+    """
+    Get the maximum path length based either on the current path length, *or* the namefile path 
+    length for the right-most column of the path if that segment was renamed, requiring that a 
+    namefile be created to store its original name.
+    """
+
+    right_most_column_new_name = path_elements_list[-1]
+
+    if right_most_column_new_name != right_most_column_original_name:
+        # If the right-most column was renamed, then it will need a namefile to store its original
+        # name.
+        path_elements_list_copy = path_elements_list.copy()
+
+        namefile = make_namefile_name(right_most_column_new_name, right_most_column_is_dir)
+        path_elements_list_copy[-1] = namefile
+        max_len = get_len(path_elements_list_copy)
+
+    else:
+        # If the right-most column was not renamed, then the path length is the same as the current
+        # path length.
+        max_len = get_len(path_elements_list)
+
+    return max_len
 
 
 # Example usage
