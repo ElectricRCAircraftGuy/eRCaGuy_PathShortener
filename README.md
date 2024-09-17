@@ -118,7 +118,7 @@ Sat. 7 Sept. 2024
 1. [x] fix illegal chars paths. Parallel make the changes in the too-long paths list if the path was in that list too (find a way to search for it, using its length as the index key) 
 1. [x] fix too long paths
 1. [x] print the before and after paths.
-1. [ ] produce before and after `tree` lists. `meld` compare the before and after tree lists. When meld is closed, let my program terminate
+1. [x-did file paths instead] produce before and after `tree` lists. `meld` compare the before and after tree lists. When meld is closed, let my program terminate
 
 Sun. 8 Sept. 2024
 1. [x] Index into a sorted list. Can you? yes!
@@ -169,11 +169,13 @@ Mon. 16 Sept. 2024
     dir as the original file.
     - Then use that list of lists of lengths outside this func to see if you need to shorten the
       path even more, or if we are done.
-1. [ ] Save the "Before and after paths" output to a file. 
-1. [ ] Have a list of name files. EVERY row needs a single name file. Because it wouldn't be in the list if it wasn't too long or named wrong, right??
+1. [x] Have a list of name files. EVERY row needs a single name file. Because it wouldn't be in the list if it wasn't too long or named wrong, right??
+    Done: `paths_longest_namefiles_list`
 1. [nah] Also check for duplicates rows/paths in the list! If there are any duplicates we need to deconflict them. 
-1. [ ] Even better than the above: add collision detection as I go to do the renames. For each row and [0:i_row+1] column, see if the path_TO is already on the disk by checking for it in a full path set which we got by first walking the directory tree. If it already exists, then find my hash number and increment it by one until it doesn't collide. 
+1. [ ] Add collision avoidance
+    Add collision detection as I go to do the renames. For each row and [0:i_row+1] column, see if the path_TO is already on the disk by checking for it in a full path set which we got by first walking the directory tree. If it already exists, then find my hash number and increment it by one until it doesn't collide. 
     [ ] if you get increment up to 0xffff in the hash and still are colliding, error out.
-How can I guarantee no duplicate path names??
+1. [ ] Save the "Before and after paths" output to a file. 
 1. [ ] Maybe store final, shortened values in a set? 
+How can I guarantee no duplicate path names??
     Maybe check the disk at the time of renaming, and if a file already exists, convert the hash to a number and increment it until it decollides??

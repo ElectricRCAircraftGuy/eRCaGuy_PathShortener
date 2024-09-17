@@ -440,13 +440,15 @@ def update_paths_in_list(paths_to_update_list, path, path_chunk_list_old, i_colu
             path2[0:i_column + 1] = path[0:i_column + 1]
 
 
-def fix_paths(paths_to_fix_sorted_list, path_stats, args, max_path_len_already_used):
+def fix_paths(all_paths_set, paths_to_fix_sorted_list, path_stats, args, max_path_len_already_used):
     """
     Fix the paths in `paths_to_fix_sorted_list`: 
 
     1. Replace symlinks with real files. 
     2. Replace illegal Windows characters with valid ones.
     3. Shorten the paths to a length that is acceptable on Windows.
+
+    all_paths_set: a set of all original paths in the directory
 
     paths_original_list   # how the paths first were before doing any renaming
     paths_FROM_list       # rename paths FROM this 
@@ -466,10 +468,15 @@ def fix_paths(paths_to_fix_sorted_list, path_stats, args, max_path_len_already_u
     
     """
 
+
     # Note: this also automatically fixes the symlinks by replacing them with real files. 
     print("\nCopying files to a new directory...")
     shortened_dir = args.base_dir + "_shortened"
     copy_directory(args.base_dir, shortened_dir)
+
+    ########## fix the first column in each path
+    all_paths_list = list(all_paths_set)
+
 
     # Copy the sorted list into a regular list of parts (lists) to operate on. 
     # - Paths will be renamed TO this.
@@ -781,7 +788,7 @@ def main():
         exit(EXIT_SUCCESS)
 
     print_paths_to_fix(paths_to_fix_sorted_list)
-    fix_paths(paths_to_fix_sorted_list, path_stats, args, len("_shortened"))
+    fix_paths(all_paths_set, paths_to_fix_sorted_list, path_stats, args, len("_shortened"))
 
     print("Done.")
     print("Sponsor me for more: https://github.com/sponsors/ElectricRCAircraftGuy")
