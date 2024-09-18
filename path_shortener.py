@@ -679,11 +679,38 @@ def fix_paths(paths_all_set, paths_to_fix_sorted_list, path_stats, args, max_pat
 
                 # 2. Perform the actual rename **on the disk!**
                 path_chunk_old.rename(path_chunk_new)
-                
-                # 3. Add the namefile to the disk
-                
+
+                # Do NOT create namefiles here. Do it below, instead, after ALL paths have been
+                # shortened sufficiently, and renamed on the disk. 
+
+                # 3. If the path chunk is a directory, it could exist in other paths in the list, 
+                # so fix (rename) it in all other places in these lists:
+                if path_chunk_new.is_dir():
+                    update_paths_in_list(paths_FROM_list, path, path_chunk_list_old, i_column)
+                    update_paths_in_list(paths_TO_list, path, path_chunk_list_old, i_column)
+                    update_paths_in_list(
+                        paths_longest_namefiles_list, path, path_chunk_list_old, i_column)
+                    
+    # 2. AFTER shortening & renaming all paths above on the disk, write the namefiles to the disk. 
+    # - This copies a lot of the logic from just above, but must be done last to avoid this bug:
+    # - Ths is a bug fix for the bug described in commit 1c373ffe3640eef5ee422b0e6e42d7f1513634c6: 
+    #   > path_shortener.py et al: identify & reproduce a bug!
+    paths_FROM_list2 = copy.deepcopy(paths_original_list)
+    for i_row, path in enumerate(paths_TO_list):
+        num_columns = len(path)
+        
+        # For all columns in this path, from L to R
+        for i_column in range(num_columns):
+            path_chunk_list_new = path[0:i_column + 1]
+            path_chunk_list_old = paths_FROM_list2[i_row][0:i_column + 1]
+
+            path_chunk_new = Path(*path_chunk_list_new)
+            path_chunk_old = Path(*path_chunk_list_old)
+
+            if path_chunk_new != path_chunk_old:
+
                 name_new = path[i_column]  # Same as `paths_TO_list[i_row][i_column]`
-                name_old = paths_FROM_list[i_row][i_column]
+                name_old = paths_FROM_list2[i_row][i_column]
                 namefile = paths.make_namefile_name(name_new, path_chunk_new.is_dir())
                 base_dir = path_chunk_new.parent
 
@@ -703,13 +730,10 @@ def fix_paths(paths_all_set, paths_to_fix_sorted_list, path_stats, args, max_pat
                 if path_chunk_new.is_dir():
                     write_namefile_to_disk(namefile_path2, name_old, path_chunk_new.is_dir())
 
-                # 4. If the path chunk is a directory, it could exist in other paths in the list, 
+                # If the path chunk is a directory, it could exist in other paths in the list, 
                 # so fix (rename) it in all other places in these lists:
                 if path_chunk_new.is_dir():
-                    update_paths_in_list(paths_FROM_list, path, path_chunk_list_old, i_column)
-                    update_paths_in_list(paths_TO_list, path, path_chunk_list_old, i_column)
-                    update_paths_in_list(
-                        paths_longest_namefiles_list, path, path_chunk_list_old, i_column)
+                    update_paths_in_list(paths_FROM_list2, path, path_chunk_list_old, i_column)
 
     print("\n")
 
@@ -719,7 +743,7 @@ def fix_paths(paths_all_set, paths_to_fix_sorted_list, path_stats, args, max_pat
     print()
 
 
-    # 2. Double-check that all paths are now valid and short enough by walking the directory tree
+    # 3. Double-check that all paths are now valid and short enough by walking the directory tree
     #    and checking each path length one last time.
     
     all_paths_set2 = walk_directory(shortened_dir)
@@ -753,7 +777,7 @@ def fix_paths(paths_all_set, paths_to_fix_sorted_list, path_stats, args, max_pat
     print(f"  Max namefile len AFTER: {max_namefile_len}")
     
 
-    # 3. Print before and after paths. Also write them to files for later `meld` comparison.
+    # 4. Print before and after paths. Also write them to files for later `meld` comparison.
 
     output_dir = os.path.join(shortened_dir + "_OUTPUT")
     os.makedirs(output_dir, exist_ok=True)
@@ -814,35 +838,11 @@ def fix_paths(paths_all_set, paths_to_fix_sorted_list, path_stats, args, max_pat
        + f"Manually close 'meld' to continue.\n"
     )
 
+
+    # 5. Perform the `meld` comparison
+    
     ######### uncomment when done 
     # subprocess.run(["meld", paths_before_filename, paths_after_filename], check=True)
-
-
-    # 4. `meld`-compare the `tree` output of the original and shortened directories
-    #
-    # UPDATE: I don't like the way the above tree comparison looks! Instead, write the before and
-    # after paths to a file and compare them, rather than comparing the tree output! Done above now.
-    """
-    tree_before = subprocess.run(["tree", args.base_dir], 
-                        check=True, text=True, capture_output=True)
-    tree_after = subprocess.run(["tree", shortened_dir], 
-                        check=True, text=True, capture_output=True)
-    
-    tree_before_filename = args.base_dir + "_tree_before.txt"
-    tree_after_filename  = args.base_dir + "_tree_after.txt"
-
-    # Write the tree outputs to files
-    with open(tree_before_filename, "w") as f:
-        f.write(tree_before.stdout)
-    with open(tree_after_filename, "w") as f:
-        f.write(tree_after.stdout)
-    
-    print("'meld'-comparing the original and shortened directories...\n"
-       + f"  Original:  {args.base_dir}\n"
-       + f"  Shortened: {shortened_dir}\n")
-
-    subprocess.run(["meld", tree_before_filename, tree_after_filename], check=True)
-    """
 
 
 def main():
