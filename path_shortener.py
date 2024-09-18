@@ -694,9 +694,9 @@ def fix_paths(paths_all_set, paths_to_fix_sorted_list, path_stats, args, max_pat
                 # - Ex path: "base_dir/!shortened_dir@ABCD_NAME.txt"
                 namefile_path2 =  base_dir / Path(namefile).name
 
-                # # debugging
-                # print(f"namefile_path1: {namefile_path1}")
-                # print(f"namefile_path2: {namefile_path2}")
+                # debugging
+                print(f"namefile_path1: {namefile_path1}")
+                print(f"namefile_path2: {namefile_path2}")
 
                 write_namefile_to_disk(namefile_path1, name_old, path_chunk_new.is_dir())
                 # The second namefile is only valid for directories
@@ -712,6 +712,11 @@ def fix_paths(paths_all_set, paths_to_fix_sorted_list, path_stats, args, max_pat
                         paths_longest_namefiles_list, path, path_chunk_list_old, i_column)
 
     print("\n")
+
+    # debugging
+    print("\nPrinting paths_longest_namefiles_list:")
+    print_paths_list(paths_longest_namefiles_list)
+    print()
 
 
     # 2. Double-check that all paths are now valid and short enough by walking the directory tree

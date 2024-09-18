@@ -7,4 +7,5 @@ SCRIPT_DIRECTORY="$(dirname "$FULL_PATH_TO_SCRIPT")"
 
 cd "$SCRIPT_DIRECTORY"
 
-rm -r test_paths_shortened; ./path_shortener.py test_paths
+rm -r test_paths_shortened
+./path_shortener.py test_paths | tee log.txt

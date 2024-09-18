@@ -34,3 +34,6 @@ __pycache__/
 
 /test_paths_tree*.txt
 /test_paths_shortened_OUTPUT/
+
+# log file for my test_paths program
+/log.txt 

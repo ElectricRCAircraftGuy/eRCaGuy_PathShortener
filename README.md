@@ -178,6 +178,10 @@ Mon. 16 Sept. 2024
 
 Tue. 17 Sept. 2024
 1. [x] Make the quantity of hash chars a user configuration parameter! Comment in the error messages to increase it if path conflicts arise and the program exits early.
+1. [ ] BUG FIX!: `paths_TO_list` is sorted out of order! Sometimes the trailing `hello` dir sorts as the first (longest) dir in the list, which is wrong, and sometimes `hel\o` sorts as the first (longest) dir in the list, which is right, since it will require a namefile at `hel_o/!hel_o_NAME.txt`, making it the longest path. 
+    So, fix this by re-sorting the list based on the length of the path considering any namefiles that need to be created. <===
+    [ ] EVEN BETTER PERHAPS: don't resort the list. Instead, simply avoid making the namefiles until the end, since they could change.
+---
 1. [ ] Store output files into dir_shortened/.path_shortener/ instead of in dir_shortened_OUTPUT/
     [ ] Add a list and file to store all created namefiles too.
 Store it into that dir.
@@ -188,3 +192,4 @@ How can I guarantee no duplicate path names??
 1. [ ] Copy the output dir to Windows and look at it. Does `!` sort to the top? I think so. Consider making it `0!` instead, so it sorts to the top on Linux too. 
 1. [ ] Consider moving directory namefiles up one level to be at the same level as the dir they are in, or, even better, putting them in BOTH locations so we can quickly and easily find the original directory name easily. <==
 1. [ ] Write user documentation about the program, its output, and how to use it.
+
