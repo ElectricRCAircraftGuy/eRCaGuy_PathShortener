@@ -576,7 +576,7 @@ def fix_paths(paths_all_set, paths_to_fix_sorted_list, path_stats, args, max_pat
         path_len = paths.get_len(path_longest)
 
         # debugging
-        print(f"Path: {i_row:4}: {path_len:4}: {path}")
+        print(f"\nPath: {i_row:4}: {path_len:4}:       {path}")
         print(f"  num_columns: {num_columns}")
         print(f"  i_last_column: {i_last_column}")
         print(f"  path_len: {path_len}")
@@ -690,19 +690,21 @@ def fix_paths(paths_all_set, paths_to_fix_sorted_list, path_stats, args, max_pat
                 # 1) For all files, and for directories inside the shortened dir
                 # - Ex path: "base_dir/shortened_dir@ABCD/!shortened_dir@ABCD_NAME.txt"
                 namefile_path1 =  base_dir / namefile
-                # 2) At the same level as the shortened dir
+                # 2) Valid for directories only: at the same level as the shortened dir
                 # - Ex path: "base_dir/!shortened_dir@ABCD_NAME.txt"
                 namefile_path2 =  base_dir / Path(namefile).name
 
-                # debugging
-                print(f"namefile_path1: {namefile_path1}")
-                print(f"namefile_path2: {namefile_path2}")
+                # # debugging
+                # print(f"namefile_path1: {namefile_path1}")
+                # print(f"namefile_path2: {namefile_path2}")
 
                 write_namefile_to_disk(namefile_path1, name_old, path_chunk_new.is_dir())
-                write_namefile_to_disk(namefile_path2, name_old, path_chunk_new.is_dir())
+                # The second namefile is only valid for directories
+                if path_chunk_new.is_dir():
+                    write_namefile_to_disk(namefile_path2, name_old, path_chunk_new.is_dir())
 
                 # 4. If the path chunk is a directory, it could exist in other paths in the list, 
-                # so fix it in all other places in these lists:
+                # so fix (rename) it in all other places in these lists:
                 if path_chunk_new.is_dir():
                     update_paths_in_list(paths_FROM_list, path, path_chunk_list_old, i_column)
                     update_paths_in_list(paths_TO_list, path, path_chunk_list_old, i_column)
