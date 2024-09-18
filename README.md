@@ -13,19 +13,36 @@ A tool to shorten paths on Linux (4096 chars max path length) &amp; Mac so that 
 # Installation & usage
 
 1. Install dependencies:
+    Python modules:
+
     ```bash
     pip3 install -r requirements.txt
     ```
 
-1. Edit `config.py` as needed. 
+    Meld: https://meldmerge.org/
+    ```bash
+    # On Linux Ubuntu
+    sudo apt update
+    sudo apt install meld
+    ```
+
+1. Open `config.py` and edit its settings if needed. 
+
+1. Download and install this program
+    ```bash
+    # TODO
+    ```
 
 1. Run the program:
     ```bash
-    ./path_shortener.py
+    # Help menu
+    path_shortener.py -h
+
+    # TODO
     ```
 
 
-# How it works
+# How it works and what it does
 
 TODO
 
@@ -193,7 +210,10 @@ Tue. 17 Sept. 2024
     So, fix this by re-sorting the list based on the length of the path considering any namefiles that need to be created. <===
     [x-yes: this worked] EVEN BETTER PERHAPS: don't resort the list. Instead, simply avoid making the namefiles until the end, since they could change.
 ---
-1. [ ] Copy the output dir to Windows and look at it. Does `!` sort to the top? I think so. Consider making it `0!` instead, so it sorts to the top on Linux too. 
+1. [x] Copy the output dir to Windows and look at it. Does `!` sort to the top? I think so. Consider making it `0!` instead, so it sorts to the top on Linux too.
+    Yes, `!` sorts to the top on Windows, and `!!` sorts even higher on Windows. So, let's make the main dir's namefile begin with `!!` instead.
+1. [ ] Add a hash (of the original name) to the names of files renamed due to illegal chars, too. This will help avoid name collisions and make it more obvious that these files have been renamed.
+    - Consider using a hash of 3 chars instead of 4? Nah, just use 4. 
 1. [ ] Store output files into dir_shortened/.path_shortener/ instead of in dir_shortened_OUTPUT/
     [ ] Add a list and file to store all created namefiles too.
         Store it into that dir.

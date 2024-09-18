@@ -715,11 +715,13 @@ def fix_paths(paths_all_set, paths_to_fix_sorted_list, path_stats, args, max_pat
                 base_dir = path_chunk_new.parent
 
                 # 1) For all files, and for directories inside the shortened dir
-                # - Ex path: "base_dir/shortened_dir@ABCD/!shortened_dir@ABCD_NAME.txt"
+                # - Ex path: "base_dir/shortened_dir@ABCD/!!shortened_dir@ABCD_NAME.txt"
                 namefile_path1 =  base_dir / namefile
                 # 2) Valid for directories only: at the same level as the shortened dir
                 # - Ex path: "base_dir/!shortened_dir@ABCD_NAME.txt"
-                namefile_path2 =  base_dir / Path(namefile).name
+                # Remove one of the two `!!` chars from the front of the namefile, inside the dir.
+                namefile = Path(namefile).name[1:]
+                namefile_path2 =  base_dir / namefile
 
                 # debugging
                 print(f"namefile_path1: {namefile_path1}")
