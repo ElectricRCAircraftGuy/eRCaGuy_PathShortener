@@ -435,7 +435,7 @@ def update_paths_in_list(paths_to_update_list, path, path_chunk_list_old, i_colu
 
     Inputs:
     - paths_to_update_list: the list of paths to update
-    ...
+    TODO...
     """
     for path2 in paths_to_update_list:
         path2_chunk_list = path2[0:i_column + 1]
@@ -444,7 +444,7 @@ def update_paths_in_list(paths_to_update_list, path, path_chunk_list_old, i_colu
             path2[0:i_column + 1] = path[0:i_column + 1]
 
 
-def fix_paths(all_paths_set, paths_to_fix_sorted_list, path_stats, args, max_path_len_already_used):
+def fix_paths(paths_all_set, paths_to_fix_sorted_list, path_stats, args, max_path_len_already_used):
     """
     Fix the paths in `paths_to_fix_sorted_list`: 
 
@@ -457,8 +457,8 @@ def fix_paths(all_paths_set, paths_to_fix_sorted_list, path_stats, args, max_pat
     paths_original_list   # how the paths first were before doing any renaming
     paths_FROM_list       # rename paths FROM this 
     paths_TO_list         # rename paths TO this
-    paths_noillegals_list # how the paths will look after removing illegal chars, but withOUT 
-                          #   shortening
+    # (removed) paths_noillegals_list # how the paths will look after removing illegal chars, 
+                          # but withOUT shortening
     paths_longest_namefiles_list # A list of the right-most namefiles ONLY, where namefiles are the 
                           #   "my_file_name@ABCD_NAME.txt" and 
                           #   "my_dir_name@ABCD/!my_dir_name@ABCD_NAME.txt" type 
@@ -478,9 +478,23 @@ def fix_paths(all_paths_set, paths_to_fix_sorted_list, path_stats, args, max_pat
     shortened_dir = args.base_dir + "_shortened"
     copy_directory(args.base_dir, shortened_dir)
 
-    ########## fix the first column in each path
-    all_paths_list = list(all_paths_set)
+    paths_all_list = [list(Path(path).parts) for path in paths_all_set]
+    for path in paths_all_list:
+        path[0] = shortened_dir
 
+    # # debugging
+    # print("\nPaths all list:", end="")
+    # print_paths_list(paths_all_list)  
+
+    # reassemble back into a set
+    # TODO: `paths_all_set` or `paths_all_list` can later be used to avoid path collisions
+    # as new, corrected paths are generated. For now, though, they aren't being used. 
+    paths_all_set = {paths.list_to_path(path) for path in paths_all_list}
+    
+    # # debugging
+    # print("\nPaths all set:")
+    # for path in paths_all_set:
+    #     print(path)
 
     # Copy the sorted list into a regular list of parts (lists) to operate on. 
     # - Paths will be renamed TO this.
@@ -491,14 +505,15 @@ def fix_paths(all_paths_set, paths_to_fix_sorted_list, path_stats, args, max_pat
     for path in paths_TO_list:
         path[0] = shortened_dir
 
-    print_paths_list(paths_TO_list)  # debugging
+    # # debugging
+    # print("\nPaths TO list:", end="")
+    # print_paths_list(paths_TO_list)  
 
     # Store the original paths for later.
     # This is how the paths first were before doing any renaming.
     paths_original_list = copy.deepcopy(paths_TO_list)
     # Other lists: see descriptions above. 
     paths_FROM_list = copy.deepcopy(paths_TO_list)
-    paths_noillegals_list = copy.deepcopy(paths_TO_list) ########## don't need this maybe????
     paths_longest_namefiles_list = copy.deepcopy(paths_TO_list)
 
 
@@ -559,7 +574,6 @@ def fix_paths(all_paths_set, paths_to_fix_sorted_list, path_stats, args, max_pat
                 namefile_path = paths.make_namefile_name(path[i_column], is_dir)
                 paths_longest_namefiles_list[i_row][i_column] = namefile_path
 
-            paths_noillegals_list[i_row][i_column] = path[i_column] #### possibly delete 
             i_column -= 1
 
         # Shorten the path until it is short enough OR until we cannot shorten the segments 
@@ -615,6 +629,9 @@ def fix_paths(all_paths_set, paths_to_fix_sorted_list, path_stats, args, max_pat
 
         # Propagate the path changes across all paths in the FROM, TO, and namefiles lists, AND ON
         # THE DISK, from L to R in the columns. 
+        # - Also look for name collisions. 
+        # - And create namefiles for any files or dirs that were renamed.
+
         ############### do work here; need to add all namefiles! ###############
 
         # For all columns in this path, from L to R
@@ -626,16 +643,43 @@ def fix_paths(all_paths_set, paths_to_fix_sorted_list, path_stats, args, max_pat
             path_chunk_old = Path(*path_chunk_list_old)
 
             if path_chunk_new != path_chunk_old:
+
                 # 1. Fix it (for both files *and* folders!) on the disk
                 if path_chunk_new.exists():
-                    print(f"Error: Path chunk \"{path_chunk_new}\" already exists. Exiting.")
+                    print(f"Error: Path chunk \"{path_chunk_new}\" already exists.")
                     print("  Note: you can try manually fixing this, OR modifying the code to"
-                        + "  gracefully handle it.")
-                    # TODO: consider gracefully handling this instead of exiting here.
+                        + "  gracefully handle these collisions.")
+                    # TODO: consider gracefully handling these name collisions instead of exiting
+                    # here.
+                    print("Exiting.")
                     exit(EXIT_FAILURE)
 
                 # Perform the actual rename **on the disk!**
                 path_chunk_old.rename(path_chunk_new)
+                
+                # Add the namefile to the disk
+                name_new = path[i_column]
+                name_old = paths_FROM_list[i_row][i_column]
+                namefile = paths.make_namefile_name(name_new, path_chunk_new.is_dir())
+                base_dir = path_chunk_new.parent
+                namefile_path =  base_dir / namefile
+
+                ##### functionize the below code and call it twice to create directory namefiles in two locations: one inside the dir, and one at the same level as the dir. ######
+                if namefile_path.exists():
+                    print(f"Error: Namefile \"{namefile_path}\" already exists/////////////.") ##########
+                    print("  Note: you can try manually fixing this, OR modifying the code to"
+                        + "  gracefully handle these collisions.")
+                    # TODO: consider gracefully handling these name collisions instead of exiting
+                    # here.
+                    print("Exiting.")
+                    exit(EXIT_FAILURE)
+                else:
+                    # Create the namefile on the disk
+                    with open(namefile_path, "w") as file:
+                        file_or_dir = "directory" if path_chunk_new.is_dir() else "file"
+                        file.write(f"Original {file_or_dir} name:\n"
+                                 + f"{name_old}\n")
+                ##########
 
                 # 2. If the path chunk is a directory, it could exist in other paths in the list, 
                 # so fix it in all other places in these lists:
@@ -644,8 +688,6 @@ def fix_paths(all_paths_set, paths_to_fix_sorted_list, path_stats, args, max_pat
                     update_paths_in_list(paths_TO_list, path, path_chunk_list_old, i_column)
                     update_paths_in_list(
                         paths_longest_namefiles_list, path, path_chunk_list_old, i_column)
-                    ###### not needed I think:
-                    # update_paths_in_list(paths_noillegals_list, path, path_chunk_list_old, i_column)
 
     print("\n")
 

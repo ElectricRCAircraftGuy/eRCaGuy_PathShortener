@@ -41,7 +41,7 @@ def is_dir(path_elements_list):
     return is_dir
 
 
-def make_namefile_name(original_name, is_dir):
+def make_namefile_name(file_or_dir_name, is_dir):
     """
     Make a namefile filename for the given original name. 
     
@@ -54,10 +54,10 @@ def make_namefile_name(original_name, is_dir):
 
     if is_dir:
         # Is a directory
-        namefile_name =  os.path.join(original_name, "!" + original_name + "_NAME.txt")
+        namefile_name =  os.path.join(file_or_dir_name, "!" + file_or_dir_name + "_NAME.txt")
     else:
         # Is a file
-        path = pathlib.Path(original_name)
+        path = pathlib.Path(file_or_dir_name)
         namefile_name = path.stem + "_NAME.txt"
 
     return namefile_name

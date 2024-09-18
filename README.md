@@ -172,10 +172,19 @@ Mon. 16 Sept. 2024
 1. [x] Have a list of name files. EVERY row needs a single name file. Because it wouldn't be in the list if it wasn't too long or named wrong, right??
     Done: `paths_longest_namefiles_list`
 1. [nah] Also check for duplicates rows/paths in the list! If there are any duplicates we need to deconflict them. 
-1. [ ] Add collision avoidance
+1. [nah--I look for collision avoidance when I create the namefiles. If there are collisions, tell the user to increase the hash_len in the config file instead] Add collision avoidance
     Add collision detection as I go to do the renames. For each row and [0:i_row+1] column, see if the path_TO is already on the disk by checking for it in a full path set which we got by first walking the directory tree. If it already exists, then find my hash number and increment it by one until it doesn't collide. 
-    [ ] if you get increment up to 0xffff in the hash and still are colliding, error out.
+    [nah] if you get increment up to 0xffff in the hash and still are colliding, error out.
+
+Tue. 17 Sept. 2024
+1. [ ] Make the quantity of hash chars a user configuration parameter! Comment in the error messages to increase it if path conflicts arise and the program exits early.
+1. [ ] Store output files into dir_shortened/.path_shortener/ instead of in dir_shortened_OUTPUT/
+    [ ] Add a list and file to store all created namefiles too.
+Store it into that dir.
 1. [ ] Save the "Before and after paths" output to a file. 
 1. [ ] Maybe store final, shortened values in a set? 
 How can I guarantee no duplicate path names??
     Maybe check the disk at the time of renaming, and if a file already exists, convert the hash to a number and increment it until it decollides??
+1. [ ] Copy the output dir to Windows and look at it. Does `!` sort to the top? I think so. Consider making it `0!` instead, so it sorts to the top on Linux too. 
+1. [ ] Consider moving directory namefiles up one level to be at the same level as the dir they are in, or, even better, putting them in BOTH locations so we can quickly and easily find the original directory name easily. <==
+1. [ ] Write user documentation about the program, its output, and how to use it.
