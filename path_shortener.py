@@ -392,7 +392,7 @@ def shorten_segment(i_row, i_column,
     stem_old = path_TO.stem        # ex: "some_file"
     stem_new = stem_old
 
-    HASH_LEN = 4
+    HASH_LEN = config.HASH_LEN
 
     # NB: +1 for the char before the hash. Ex: "@abcd"
     if len(stem_old) > allowed_segment_len + HASH_LEN + 1:  
@@ -442,6 +442,29 @@ def update_paths_in_list(paths_to_update_list, path, path_chunk_list_old, i_colu
         if path2_chunk_list == path_chunk_list_old:
             # update this path in the list
             path2[0:i_column + 1] = path[0:i_column + 1]
+
+
+HASH_LEN_RECOMMENDATION = ("  Increase the `HASH_LEN` in 'config.py' to reduce the chance of\n"
+                         + "  name collisions, and try again. You may also need to manually fix\n"
+                         + "  this in your original directory.")
+
+
+def write_namefile_to_disk(namefile_path, name_old, is_dir):
+    """
+    Write a namefile to the disk.
+    """
+    if namefile_path.exists():
+        print(f"Error: Namefile \"{namefile_path}\" already exists.")
+        print(HASH_LEN_RECOMMENDATION)
+        # TODO: consider gracefully handling these name collisions instead of exiting here.
+        print("Exiting.")
+        exit(EXIT_FAILURE)
+    else:
+        # Create the namefile on the disk
+        with open(namefile_path, "w") as file:
+            file_or_dir = "directory" if is_dir else "file"
+            file.write(f"Original {file_or_dir} name:\n"
+                     + f"{name_old}\n")
 
 
 def fix_paths(paths_all_set, paths_to_fix_sorted_list, path_stats, args, max_path_len_already_used):
@@ -632,8 +655,6 @@ def fix_paths(paths_all_set, paths_to_fix_sorted_list, path_stats, args, max_pat
         # - Also look for name collisions. 
         # - And create namefiles for any files or dirs that were renamed.
 
-        ############### do work here; need to add all namefiles! ###############
-
         # For all columns in this path, from L to R
         for i_column in range(num_columns):
             path_chunk_list_new = path[0:i_column + 1]
@@ -644,44 +665,43 @@ def fix_paths(paths_all_set, paths_to_fix_sorted_list, path_stats, args, max_pat
 
             if path_chunk_new != path_chunk_old:
 
-                # 1. Fix it (for both files *and* folders!) on the disk
+                # Fix it (for both files *and* folders!) on the disk
+
+                # 1. Check for name collisions
                 if path_chunk_new.exists():
-                    print(f"Error: Path chunk \"{path_chunk_new}\" already exists.")
-                    print("  Note: you can try manually fixing this, OR modifying the code to"
-                        + "  gracefully handle these collisions.")
+                    print(f"Error: Path chunk \"{path_chunk_new}\" already exists. "
+                        + f"Cannot perform the rename.")
+                    print(HASH_LEN_RECOMMENDATION)
                     # TODO: consider gracefully handling these name collisions instead of exiting
                     # here.
                     print("Exiting.")
                     exit(EXIT_FAILURE)
 
-                # Perform the actual rename **on the disk!**
+                # 2. Perform the actual rename **on the disk!**
                 path_chunk_old.rename(path_chunk_new)
                 
-                # Add the namefile to the disk
-                name_new = path[i_column]
+                # 3. Add the namefile to the disk
+                
+                name_new = path[i_column]  # Same as `paths_TO_list[i_row][i_column]`
                 name_old = paths_FROM_list[i_row][i_column]
                 namefile = paths.make_namefile_name(name_new, path_chunk_new.is_dir())
                 base_dir = path_chunk_new.parent
-                namefile_path =  base_dir / namefile
 
-                ##### functionize the below code and call it twice to create directory namefiles in two locations: one inside the dir, and one at the same level as the dir. ######
-                if namefile_path.exists():
-                    print(f"Error: Namefile \"{namefile_path}\" already exists/////////////.") ##########
-                    print("  Note: you can try manually fixing this, OR modifying the code to"
-                        + "  gracefully handle these collisions.")
-                    # TODO: consider gracefully handling these name collisions instead of exiting
-                    # here.
-                    print("Exiting.")
-                    exit(EXIT_FAILURE)
-                else:
-                    # Create the namefile on the disk
-                    with open(namefile_path, "w") as file:
-                        file_or_dir = "directory" if path_chunk_new.is_dir() else "file"
-                        file.write(f"Original {file_or_dir} name:\n"
-                                 + f"{name_old}\n")
-                ##########
+                # 1) For all files, and for directories inside the shortened dir
+                # - Ex path: "base_dir/shortened_dir@ABCD/!shortened_dir@ABCD_NAME.txt"
+                namefile_path1 =  base_dir / namefile
+                # 2) At the same level as the shortened dir
+                # - Ex path: "base_dir/!shortened_dir@ABCD_NAME.txt"
+                namefile_path2 =  base_dir / Path(namefile).name
 
-                # 2. If the path chunk is a directory, it could exist in other paths in the list, 
+                # debugging
+                print(f"namefile_path1: {namefile_path1}")
+                print(f"namefile_path2: {namefile_path2}")
+
+                write_namefile_to_disk(namefile_path1, name_old, path_chunk_new.is_dir())
+                write_namefile_to_disk(namefile_path2, name_old, path_chunk_new.is_dir())
+
+                # 4. If the path chunk is a directory, it could exist in other paths in the list, 
                 # so fix it in all other places in these lists:
                 if path_chunk_new.is_dir():
                     update_paths_in_list(paths_FROM_list, path, path_chunk_list_old, i_column)

@@ -177,7 +177,7 @@ Mon. 16 Sept. 2024
     [nah] if you get increment up to 0xffff in the hash and still are colliding, error out.
 
 Tue. 17 Sept. 2024
-1. [ ] Make the quantity of hash chars a user configuration parameter! Comment in the error messages to increase it if path conflicts arise and the program exits early.
+1. [x] Make the quantity of hash chars a user configuration parameter! Comment in the error messages to increase it if path conflicts arise and the program exits early.
 1. [ ] Store output files into dir_shortened/.path_shortener/ instead of in dir_shortened_OUTPUT/
     [ ] Add a list and file to store all created namefiles too.
 Store it into that dir.
