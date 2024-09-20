@@ -240,6 +240,9 @@ def parse_args():
     # parser.add_argument("-F", action="store_true", help="Force the run to NOT be a dry run")
     # parser.add_argument("-I", '--install', action="store_true", 
     #                     help="Install this program into ~/bin for you.")
+    parser.add_argument("-m", "--meld", action="store_true", help="Use 'meld' to compare "
+                        "the original paths with the new paths when done. Requires meld "
+                        "to be installed.")
 
     # Parse arguments; note: this automatically exits the program here if the arguments are invalid
     # or if the user requested the help menu.
@@ -929,14 +932,14 @@ def fix_paths(paths_all_set, paths_to_fix_sorted_list, path_stats, args, max_pat
 
     # 5. Perform the `meld` comparison
     
-    print("\n'meld'-comparing the original and shortened directories...\n"
-       + f"NB: IN MELD, BE SURE TO CLICK THE \"Keep highlighting\" BUTTON AT THE TOP!\n"
-       + f"  Original:  {args.base_dir}/\n"
-       + f"  Shortened: {shortened_dir}/\n"
-       + f"Manually close 'meld' to continue.\n"
-    )
-    ######### uncomment when done 
-    # subprocess.run(["meld", paths_before_filename, paths_after_filename], check=True)
+    if args.meld:
+        print("\n'meld'-comparing the original and shortened directories...\n"
+        + f"NB: IN MELD, BE SURE TO CLICK THE \"Keep highlighting\" BUTTON AT THE TOP!\n"
+        + f"  Original:  {args.base_dir}/\n"
+        + f"  Shortened: {shortened_dir}/\n"
+        + f"Manually close 'meld' to continue.\n"
+        )
+        subprocess.run(["meld", paths_before_filename, paths_after_filename], check=True)
 
 
 def main():
