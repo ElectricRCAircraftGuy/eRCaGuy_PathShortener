@@ -21,11 +21,9 @@ ILLEGAL_WINDOWS_CHARS = "<>:\"\\|?*"
 # Default: 4
 HASH_LEN = 4
 
-# The character to prefix hashes in shortened paths. 
-# Ex: "@ABCD"
-HASH_PREFIX_CHAR_SHORTENED = "@"
-# The character to prefix hashes in paths which had Windows-illegal chars in them removed.
-# Ex: "#ABCD"
-HASH_PREFIX_CHAR_ILLEGALS = "#"
-
-########### USE THE CHARS ABOVE IN THE CODE NOW!
+# The character or string to prefix hashes in shortened paths. 
+# Ex: prefix of "@" --> "@ABCD" at the end of a shortened file or dir name. 
+HASH_PREFIX_FOR_SHORTENED = "@"
+# The character or string to prefix hashes in paths which had Windows-illegal chars in them removed.
+# Ex: prefix of "#" --> "#ABCD" at the end of a fixed file or dir name. 
+HASH_PREFIX_FOR_ILLEGALS = "#"
