@@ -585,7 +585,18 @@ def fix_paths(paths_all_set, paths_to_fix_sorted_list, path_stats, args, max_pat
         # column if a rename is needed.
         i_column = i_last_column
         while i_column >= 0:
+            stem_old = Path(path[i_column]).stem
             path[i_column] = replace_chars(path[i_column], config.ILLEGAL_WINDOWS_CHARS, "_")
+            stem_new = Path(path[i_column]).stem
+
+            # Add hashes to all renamed paths
+            if stem_old != stem_new:
+                full_path_original = str(Path(*(paths_original_list[i_row][0:i_column + 1])))
+                # Note: for paths that have illegal chars removed, use a different prefix char
+                # before the hash to distinguish them from paths that were simply shortened.
+                stem_new += "#" + hash_to_hex(full_path_original, config.HASH_LEN)
+                path_new = Path(path[i_column]).with_stem(stem_new)
+                path[i_column] = str(path_new)
 
             # Create a namefile for the right-most column if it was renamed
             # - NB: nearly this same logic is also inside of `shorten_segment()`

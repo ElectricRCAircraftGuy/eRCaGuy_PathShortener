@@ -21,3 +21,11 @@ ILLEGAL_WINDOWS_CHARS = "<>:\"\\|?*"
 # Default: 4
 HASH_LEN = 4
 
+# The character to prefix hashes in shortened paths. 
+# Ex: "@ABCD"
+HASH_PREFIX_CHAR_SHORTENED = "@"
+# The character to prefix hashes in paths which had Windows-illegal chars in them removed.
+# Ex: "#ABCD"
+HASH_PREFIX_CHAR_ILLEGALS = "#"
+
+########### USE THE CHARS ABOVE IN THE CODE NOW!

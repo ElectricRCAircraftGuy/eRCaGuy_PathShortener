@@ -212,15 +212,16 @@ Tue. 17 Sept. 2024
 ---
 1. [x] Copy the output dir to Windows and look at it. Does `!` sort to the top? I think so. Consider making it `0!` instead, so it sorts to the top on Linux too.
     Yes, `!` sorts to the top on Windows, and `!!` sorts even higher on Windows. So, let's make the main dir's namefile begin with `!!` instead.
-1. [ ] Add a hash (of the original name) to the names of files renamed due to illegal chars, too. This will help avoid name collisions and make it more obvious that these files have been renamed.
+1. [x] Add a hash (of the original name) to the names of files renamed due to illegal chars, too. This will help avoid name collisions and make it more obvious that these files have been renamed.
     - Consider using a hash of 3 chars instead of 4? Nah, just use 4. 
 1. [ ] Store output files into dir_shortened/.path_shortener/ instead of in dir_shortened_OUTPUT/
     [ ] Add a list and file to store all created namefiles too.
         Store it into that dir.
 1. [ ] Save the "Before and after paths" output to a file. 
-1. [ ] Maybe store final, shortened values in a set? 
+1. [not needed; just increase the hash length to avoid name collisions instead, if they occur] Maybe store final, shortened values in a set? 
 How can I guarantee no duplicate path names??
     Maybe check the disk at the time of renaming, and if a file already exists, convert the hash to a number and increment it until it decollides??
 1. [x] Consider moving directory namefiles up one level to be at the same level as the dir they are in, or, even better, putting them in BOTH locations so we can quickly and easily find the original directory name easily. <==
+1. [ ] review and fix the program arguments and help menu
 1. [ ] Write user documentation about the program, its output, and how to use it.
 
