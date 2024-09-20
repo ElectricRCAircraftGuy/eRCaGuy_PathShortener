@@ -28,11 +28,18 @@ SCRIPT_DIRECTORY = str(os.path.dirname(FULL_PATH_TO_SCRIPT))
 
 
 class Tee:
-    def __init__(self, *files):
-        self.files = files
-
+    def __init__(self, *paths):
+        """
+        Create a Tee object that writes to multiple files, as specified by the paths passed in.
+        """
+        self.paths = paths
+        
     def write(self, obj):
-        for f in self.files:
+        # Write to the original stdout
+        self.stdout_bak.write(obj)
+
+        # Write to all the log files
+        for f in self.logfiles:
             f.write(obj)
             f.flush()  # Ensure the output is written immediately
 
@@ -44,36 +51,39 @@ class Tee:
         AttributeError: 'Tee' object has no attribute 'flush'
         ```
         """
-        for f in self.files:
+        for f in self.logfiles:
             f.flush()
 
     def begin(self):
         """
-        Begin tee-ing stdout to the console and to a log file.
+        Begin tee-ing stdout to the console and to one or more log files.
         """
+        # Open all the files for writing
+        self.logfiles = []
+        for path in self.paths:
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            self.logfiles.append(open(path, "w"))
+
+        # Save the original stdout, and replace it with the Tee object
         self.stdout_bak = sys.stdout
-        # Replace sys.stdout with the Tee object
         sys.stdout = self
 
     def end(self):
         """
-        End tee-ing stdout to the console and to a log file.
+        End tee-ing stdout to the console and to one or more log files.
         """
+        # Close all the files
+        for f in self.logfiles:
+            f.close()
+
         # Restore sys.stdout
         sys.stdout = self.stdout_bak
 
 
 def main():
-    # Open the file in write mode
-    logpath = os.path.join(SCRIPT_DIRECTORY, "temp", "output.log") 
-    os.makedirs(os.path.dirname(logpath), exist_ok=True)
+    logpath = os.path.join(SCRIPT_DIRECTORY, "temp", "tee.log")
+    tee = Tee(logpath)
 
-    logfile = open(logpath, "w")
-
-    # Create a Tee object that writes to both stdout and the logfile
-    tee = Tee(sys.stdout, logfile)
-
-    # Replace sys.stdout with the Tee object
     tee.begin()
 
     # Example usage
@@ -81,11 +91,7 @@ def main():
     print("Another line of output.")
     colors.print_red("This will be printed to the console and written to the file. It is red.")
 
-    # Restore sys.stdout
     tee.end()
-
-    # Close the logfile when done
-    logfile.close()
 
 
 if __name__ == "__main__":
