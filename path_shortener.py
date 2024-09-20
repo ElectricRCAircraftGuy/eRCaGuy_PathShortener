@@ -34,6 +34,7 @@ References:
 """
 
 # Local imports
+import ansi_colors as colors
 import config
 import paths
 
@@ -67,11 +68,11 @@ def copy_directory(src, dst):
     dst_path = Path(dst)
     
     if not src_path.exists():
-        print(f"Error: Source directory {src} does not exist. Exiting.")
+        print_red(f"Error: Source directory {src} does not exist. Exiting.")
         exit(EXIT_FAILURE)
     
     if dst_path.exists():
-        print(f"Error: Destination directory {dst} already exists. Exiting.")
+        print_red(f"Error: Destination directory {dst} already exists. Exiting.")
         exit(EXIT_FAILURE)
     
     shutil.copytree(src_path, dst_path)
@@ -238,21 +239,21 @@ def parse_args():
     
     # Check if the directory exists, if it is not a dir, and if there are permission errors
     if not os.path.exists(args.dir):
-        print("Error: directory not found.")
+        print_red("Error: directory not found.")
         exit(EXIT_FAILURE)
     elif not os.path.isdir(args.dir):
-        print("Error: path is not a directory.")
+        print_red("Error: path is not a directory.")
         exit(EXIT_FAILURE)
     elif not os.access(args.dir, os.R_OK):
-        print("Error: read permission denied.")
+        print_red("Error: read permission denied.")
         exit(EXIT_FAILURE)
 
     # Ensure we can execute (cd into) and write to the parent directory
     if not os.access(args.parent_dir, os.X_OK):
-        print("Error: execute permission denied, so we cannot 'cd' into the parent dir.")
+        print_red("Error: execute permission denied, so we cannot 'cd' into the parent dir.")
         exit(EXIT_FAILURE)
     elif not os.access(args.parent_dir, os.W_OK):
-        print("Error: write permission denied in the parent dir.")
+        print_red("Error: write permission denied in the parent dir.")
         exit(EXIT_FAILURE)
 
     os.chdir(args.parent_dir)
@@ -454,10 +455,10 @@ def write_namefile_to_disk(namefile_path, name_old, is_dir):
     Write a namefile to the disk.
     """
     if namefile_path.exists():
-        print(f"Error: Namefile \"{namefile_path}\" already exists.")
-        print(HASH_LEN_RECOMMENDATION)
+        print_red(f"Error: Namefile \"{namefile_path}\" already exists.")
+        print_red(HASH_LEN_RECOMMENDATION)
         # TODO: consider gracefully handling these name collisions instead of exiting here.
-        print("Exiting.")
+        print_red("Exiting.")
         exit(EXIT_FAILURE)
     else:
         # Create the namefile on the disk
@@ -592,6 +593,12 @@ def fix_paths(paths_all_set, paths_to_fix_sorted_list, path_stats, args, max_pat
             # Add hashes to all renamed paths
             if stem_old != stem_new:
                 full_path_original = str(Path(*(paths_original_list[i_row][0:i_column + 1])))
+
+                # debugging
+                print(f"stem_old: {stem_old}")
+                print(f"stem_new: {stem_new}")
+                print(f"full_path_original: {full_path_original}")
+
                 # Note: for paths that have illegal chars removed, use a different prefix char
                 # before the hash to distinguish them from paths that were simply shortened.
                 stem_new += "#" + hash_to_hex(full_path_original, config.HASH_LEN)
@@ -650,15 +657,15 @@ def fix_paths(paths_all_set, paths_to_fix_sorted_list, path_stats, args, max_pat
         print(f"  TO (shortened) path:  {path}")
         
         if path_len > config.MAX_ALLOWED_PATH_LEN:
-            print(f"Error: Path is still too long after shortening.")
+            print_red(f"Error: Path is still too long after shortening.")
             
-            print(f"  Original path:        {paths_original_list[i_row]}")
-            print(f"  FROM path:            {paths_FROM_list[i_row]}")
-            print(f"  TO (shortened) path:  {path}")
+            print_red(f"  Original path:        {paths_original_list[i_row]}")
+            print_red(f"  FROM path:            {paths_FROM_list[i_row]}")
+            print_red(f"  TO (shortened) path:  {path}")
             
             # TODO: consider not exiting here. Perhaps I want to keep on going and let the user
             # manually fix any insufficiently-shortened paths themselves afterwards. 
-            print("Exiting.")
+            print_red("Exiting.")
             exit(EXIT_FAILURE)
 
         # Propagate the path changes across all paths in the FROM, TO, and namefiles lists, AND ON
@@ -680,12 +687,12 @@ def fix_paths(paths_all_set, paths_to_fix_sorted_list, path_stats, args, max_pat
 
                 # 1. Check for name collisions
                 if path_chunk_new.exists():
-                    print(f"Error: Path chunk \"{path_chunk_new}\" already exists. "
-                        + f"Cannot perform the rename.")
-                    print(HASH_LEN_RECOMMENDATION)
+                    print_red(f"Error: Path chunk \"{path_chunk_new}\" already exists. "
+                            + f"Cannot perform the rename.")
+                    print_red(HASH_LEN_RECOMMENDATION)
                     # TODO: consider gracefully handling these name collisions instead of exiting
                     # here.
-                    print("Exiting.")
+                    print_red("Exiting.")
                     exit(EXIT_FAILURE)
 
                 # 2. Perform the actual rename **on the disk!**
@@ -774,10 +781,10 @@ def fix_paths(paths_all_set, paths_to_fix_sorted_list, path_stats, args, max_pat
             + "All paths are now fixed for Windows (illegal chars removed, no symlinks, "
             + "and short enough).")    
     else:
-        print("Error: some paths are still too long after shortening.")
+        print_red("Error: some paths are still too long after shortening.")
         print_paths_to_fix(paths_to_fix_sorted_list2)
         # TODO: gracefully handle this instead of exiting here.
-        print("Exiting.")
+        print_red("Exiting.")
         exit(EXIT_FAILURE)
 
     print("\nMore length stats:")
@@ -876,8 +883,8 @@ def main():
     print_paths_to_fix(paths_to_fix_sorted_list)
     fix_paths(all_paths_set, paths_to_fix_sorted_list, path_stats, args, len("_shortened"))
 
-    print("Done.")
-    print("Sponsor me for more: https://github.com/sponsors/ElectricRCAircraftGuy")
+    print(f"{colors.FGR}Completed successfully.{colors.END}")
+    print(f"{colors.FBB}Sponsor me for more: https://github.com/sponsors/ElectricRCAircraftGuy{colors.END}")
 
 
 if __name__ == "__main__":
