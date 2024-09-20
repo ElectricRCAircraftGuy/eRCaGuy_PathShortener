@@ -183,6 +183,8 @@ How can I guarantee no duplicate path names??
     Maybe check the disk at the time of renaming, and if a file already exists, convert the hash to a number and increment it until it decollides??
 1. [x] Consider moving directory namefiles up one level to be at the same level as the dir they are in, or, even better, putting them in BOTH locations so we can quickly and easily find the original directory name easily. <==
 1. [x] review and fix the program arguments and help menu
-1. [ ] Write user documentation about the program, its output, and how to use it in the main README.md file.
+1. [x] Write user documentation about the program, its output, and how to use it in the main README.md file.
+1. [ ] restore `meld` comparison at the end of the program
+    Add a `-m` or `--meld` option to enable it.
 1. [ ] post it to https://news.ycombinator.com/show
 1. [ ] post it to LinkedIn
