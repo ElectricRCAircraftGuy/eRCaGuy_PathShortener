@@ -452,7 +452,7 @@ HASH_LEN_RECOMMENDATION = ("  Increase the `HASH_LEN` in 'config.py' to reduce t
                          + "  this in your original directory.")
 
 
-def write_namefile_to_disk(namefile_path, name_old, is_dir):
+def write_namefile_to_disk(namefiles_list, namefile_path, name_old, is_dir):
     """
     Write a namefile to the disk.
     """
@@ -468,6 +468,8 @@ def write_namefile_to_disk(namefile_path, name_old, is_dir):
             file_or_dir = "directory" if is_dir else "file"
             file.write(f"Original {file_or_dir} name:\n"
                      + f"{name_old}\n")
+            
+    namefiles_list.append(namefile_path)
 
 
 def fix_paths(paths_all_set, paths_to_fix_sorted_list, path_stats, args, max_path_len_already_used):
@@ -503,6 +505,9 @@ def fix_paths(paths_all_set, paths_to_fix_sorted_list, path_stats, args, max_pat
     print("\nCopying files to a new directory...")
     shortened_dir = args.base_dir + "_shortened"
     copy_directory(args.base_dir, shortened_dir)
+
+    output_dir = os.path.join(shortened_dir, ".eRCaGuy_PathShortener")
+    os.makedirs(output_dir, exist_ok=True)
 
     paths_all_list = [list(Path(path).parts) for path in paths_all_set]
     for path in paths_all_list:
@@ -608,7 +613,8 @@ def fix_paths(paths_all_set, paths_to_fix_sorted_list, path_stats, args, max_pat
                 path_new = Path(path[i_column]).with_stem(stem_new)
                 path[i_column] = str(path_new)
 
-            # Create a namefile for the right-most column if it was renamed
+            # Create a namefile for the right-most column if it was renamed to remove illegal 
+            # Windows characters. 
             # - NB: nearly this same logic is also inside of `shorten_segment()`
             if (i_column == i_last_column 
                 and path[i_column] != paths_original_list[i_row][i_column]):
@@ -716,6 +722,7 @@ def fix_paths(paths_all_set, paths_to_fix_sorted_list, path_stats, args, max_pat
     # - This copies a lot of the logic from just above, but must be done last to avoid this bug:
     # - Ths is a bug fix for the bug described in commit 1c373ffe3640eef5ee422b0e6e42d7f1513634c6: 
     #   > path_shortener.py et al: identify & reproduce a bug!
+    namefiles_list = []  # a list of all namefiles written to disk
     paths_FROM_list2 = copy.deepcopy(paths_original_list)
     for i_row, path in enumerate(paths_TO_list):
         num_columns = len(path)
@@ -748,15 +755,23 @@ def fix_paths(paths_all_set, paths_to_fix_sorted_list, path_stats, args, max_pat
                 # print(f"namefile_path1: {namefile_path1}")
                 # print(f"namefile_path2: {namefile_path2}")
 
-                write_namefile_to_disk(namefile_path1, name_old, path_chunk_new.is_dir())
+                write_namefile_to_disk(
+                    namefiles_list, namefile_path1, name_old, path_chunk_new.is_dir())
                 # The second namefile is only valid for directories
                 if path_chunk_new.is_dir():
-                    write_namefile_to_disk(namefile_path2, name_old, path_chunk_new.is_dir())
+                    write_namefile_to_disk(
+                        namefiles_list, namefile_path2, name_old, path_chunk_new.is_dir())
 
                 # If the path chunk is a directory, it could exist in other paths in the list, 
                 # so fix (rename) it in all other places in these lists:
                 if path_chunk_new.is_dir():
                     update_paths_in_list(paths_FROM_list2, path, path_chunk_list_old, i_column)
+
+    # Write the list of namefiles to a logfile 
+    with open(os.path.join(output_dir, "namefiles_created.txt"), "w") as file:
+        file.write("List of auto-created namefiles:\n\n")
+        for namefile_path in namefiles_list:
+            file.write(f"{namefile_path}\n")
 
     print("\n")
 
@@ -772,9 +787,6 @@ def fix_paths(paths_all_set, paths_to_fix_sorted_list, path_stats, args, max_pat
     
     all_paths_set2 = walk_directory(shortened_dir)
     paths_to_fix_sorted_list2, path_stats2 = get_paths_to_fix(all_paths_set2)
-    
-    output_dir = os.path.join(shortened_dir, ".eRCaGuy_PathShortener")
-    os.makedirs(output_dir, exist_ok=True)
 
     before_and_after_filename = os.path.join(output_dir, "before_and_after_paths.txt")
     

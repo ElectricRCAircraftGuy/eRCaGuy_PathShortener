@@ -2,7 +2,7 @@
 
 # Status
 
-WIP; not yet functional.
+Done and works!
 
 
 # eRCaGuy_PathShortener
@@ -217,8 +217,8 @@ Tue. 17 Sept. 2024
 
 Fri. 20 Sept. 2024
 1. [x] Store output files into dir_shortened/.path_shortener/ instead of in dir_shortened_OUTPUT/
-1. [ ] Add a list and file to store all created namefiles too.
-        Store it into that output dir as "namefiles.txt"
+1. [x] Add a list and file to store all created namefiles too.
+        Store it into that output dir as "namefiles_created.txt"
 1. [x] Save the "Before and after paths" output to a file called "before_and_after_paths.txt" in the same dir as the output files. Use my `tee` library to make this easier since I want it to go to stdout too.
 1. [not needed; just increase the hash length to avoid name collisions instead, if they occur] Maybe store final, shortened values in a set? 
 How can I guarantee no duplicate path names??
@@ -226,4 +226,5 @@ How can I guarantee no duplicate path names??
 1. [x] Consider moving directory namefiles up one level to be at the same level as the dir they are in, or, even better, putting them in BOTH locations so we can quickly and easily find the original directory name easily. <==
 1. [ ] review and fix the program arguments and help menu
 1. [ ] Write user documentation about the program, its output, and how to use it.
-
+1. [ ] post it to https://news.ycombinator.com/show
+1. [ ] post it to LinkedIn

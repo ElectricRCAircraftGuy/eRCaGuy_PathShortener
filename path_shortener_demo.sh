@@ -18,4 +18,4 @@ SCRIPT_FILENAME_EXTENSION="${SCRIPT_FILENAME##*.}"  # JUST the extension
 cd "$SCRIPT_DIRECTORY"
 
 rm -r test_paths_shortened
-./path_shortener.py test_paths | tee "${SCRIPT_FILENAME_STEM}_log.txt"
+time ./path_shortener.py test_paths | tee "${SCRIPT_FILENAME_STEM}_log.txt"
