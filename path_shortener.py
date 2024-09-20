@@ -801,11 +801,17 @@ def fix_paths(paths_all_set, paths_to_fix_sorted_list, path_stats, args, max_pat
 
     # 4. Print before and after paths. Also write them to files for later `meld` comparison.
 
-    output_dir = os.path.join(shortened_dir + "_OUTPUT")
+    output_dir = os.path.join(shortened_dir, ".eRCaGuy_PathShortener")
     os.makedirs(output_dir, exist_ok=True)
 
-    paths_before_filename = os.path.join(output_dir, args.base_dir + "__paths_list_before.txt")
-    paths_after_filename  = os.path.join(output_dir, args.base_dir + "__paths_list_after.txt")
+    # Write some "about" info
+    with open(os.path.join(output_dir, "about.txt"), "w") as file:
+        file.write("Paths shorted and fixed by \"eRCaGuy_PathShortener\":\n"
+            "https://github.com/ElectricRCAircraftGuy/eRCaGuy_PathShortener\n\n"
+            "Sponsor me for more: https://github.com/sponsors/ElectricRCAircraftGuy\n")
+
+    paths_before_filename = os.path.join(output_dir, "1-paths_list_before.txt")
+    paths_after_filename  = os.path.join(output_dir, "2-paths_list_after.txt")
 
     print("\nBefore and after paths:\n"
         + "Index:        Len: Original path\n"
