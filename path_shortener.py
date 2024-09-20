@@ -69,11 +69,12 @@ def copy_directory(src, dst):
     dst_path = Path(dst)
     
     if not src_path.exists():
-        colors.print_red(f"Error: Source directory {src} does not exist. Exiting.")
+        colors.print_red(f"Error: Source directory \"{src}\" does not exist. Exiting.")
         exit(EXIT_FAILURE)
     
     if dst_path.exists():
-        colors.print_red(f"Error: Destination directory {dst} already exists. Exiting.")
+        colors.print_red(f"Error: Destination directory \"{dst}\" already exists.\n"
+                       + f"You may need to manually remove that directory. Exiting.")
         exit(EXIT_FAILURE)
     
     shutil.copytree(src_path, dst_path)
@@ -200,31 +201,73 @@ def walk_directory(path):
     return all_paths_set
 
 
+# def install():
+#     """
+#     Install this script into ~/bin for the user.
+#     """
+#     print("Installing this script into ~/bin for you via a symlink...")
+
+#     # Nevermind. Just have them run `./INSTALL.sh` directly instead.
+    
+#     exit(EXIT_SUCCESS)
+
+
 def parse_args():
     # Set up argument parser
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        description=textwrap.dedent("""\
-            Shorten long paths to make them accessible on Windows.
-            This script makes a copy of 'dir', called 'dir_shortened', and performs the 
-            following on the copy:
-              1. Removes illegal Windows characters from paths.
-              2. Shortens all paths to a length that is acceptable on Windows.
+        description=textwrap.dedent(f"""\
+            Fix and shorten long paths to make them accessible on Windows.
+                                    
+            This script makes a full copy of the passed-in 'dir' to a new dir called
+            'dir_shortened', and performs the following on the copy:
+              1. Removes illegal Windows characters from paths, 
+                 including: <>:\"\\|?*
+              2. Shortens all paths to a length that is acceptable on Windows, as specified by
+                 you inside 'config.py'.
               3. Copies symlinks as files, so they are not broken on Windows.
-            You may change other settings inside `config.py`.  
+            
+            You may change other settings inside `config.py`.
+                                    
+            Source code: https://github.com/ElectricRCAircraftGuy/eRCaGuy_PathShortener
+            {colors.FBB}Sponsor me:  https://github.com/sponsors/ElectricRCAircraftGuy{colors.END}
         """)
     )
+
+    parser.add_argument("dir", type=str, nargs='?', help="Path to directory to operate on")
     # `action="store_true"` means that if the flag is present, the value will be set to `True`. 
     # Otherwise, it will be `False`.
-    parser.add_argument("-F", action="store_true", help="Force the run to NOT be a dry run")
-    parser.add_argument("dir", type=str, help="Path to directory to operate on")
+    # parser.add_argument("-F", action="store_true", help="Force the run to NOT be a dry run")
+    # parser.add_argument("-I", '--install', action="store_true", 
+    #                     help="Install this program into ~/bin for you.")
 
     # Parse arguments; note: this automatically exits the program here if the arguments are invalid
     # or if the user requested the help menu.
     args = parser.parse_args()
 
-    if args.F:
-        print("Force flag is set.")
+    # if args.F:
+    #     print("Force flag is set.")
+
+    # if args.install:
+    #     install()
+
+    if not args.dir:
+        # Print the short help menu and an error message, and exit. 
+        # - Note: the default behavior if the positional argument is missing and `nargs` is NOT set
+        #   to `?` is to print the following:
+        #
+        #   eRCaGuy_PathShortener$ ./path_shortener.py 
+        #   usage: path_shortener.py [-h] [-I] dir
+        #   path_shortener.py: error: the following arguments are required: dir
+        #
+        parser.print_usage()
+        colors.print_red("Error: missing required argument 'dir'")
+        exit(EXIT_FAILURE)
+
+    # Strip any trailing slashes from the directory path
+    # print(f"args.dir before: {args.dir}")  # debugging 
+    args.dir = args.dir.rstrip("/")
+    # print(f"args.dir after:  {args.dir}")  # debugging
 
     args.parent_dir = os.path.dirname(args.dir)
 
@@ -881,10 +924,12 @@ def fix_paths(paths_all_set, paths_to_fix_sorted_list, path_stats, args, max_pat
 
     tee.end()  # end tee-ing the output to a file
 
+    print(f"{colors.FGR}See the files in \"{output_dir}\" for more details.{colors.END}")
+
 
     # 5. Perform the `meld` comparison
     
-    print("'meld'-comparing the original and shortened directories...\n"
+    print("\n'meld'-comparing the original and shortened directories...\n"
        + f"NB: IN MELD, BE SURE TO CLICK THE \"Keep highlighting\" BUTTON AT THE TOP!\n"
        + f"  Original:  {args.base_dir}/\n"
        + f"  Shortened: {shortened_dir}/\n"
