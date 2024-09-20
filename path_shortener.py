@@ -595,10 +595,10 @@ def fix_paths(paths_all_set, paths_to_fix_sorted_list, path_stats, args, max_pat
             if stem_old != stem_new:
                 full_path_original = str(Path(*(paths_original_list[i_row][0:i_column + 1])))
 
-                # debugging
-                print(f"stem_old: {stem_old}")
-                print(f"stem_new: {stem_new}")
-                print(f"full_path_original: {full_path_original}")
+                # # debugging
+                # print(f"stem_old: {stem_old}")
+                # print(f"stem_new: {stem_new}")
+                # print(f"full_path_original: {full_path_original}")
 
                 # Note: for paths that have illegal chars removed, use a different prefix char
                 # before the hash to distinguish them from paths that were simply shortened.
@@ -743,9 +743,9 @@ def fix_paths(paths_all_set, paths_to_fix_sorted_list, path_stats, args, max_pat
                 namefile = Path(namefile).name[1:]
                 namefile_path2 =  base_dir / namefile
 
-                # debugging
-                print(f"namefile_path1: {namefile_path1}")
-                print(f"namefile_path2: {namefile_path2}")
+                # # debugging
+                # print(f"namefile_path1: {namefile_path1}")
+                # print(f"namefile_path2: {namefile_path2}")
 
                 write_namefile_to_disk(namefile_path1, name_old, path_chunk_new.is_dir())
                 # The second namefile is only valid for directories

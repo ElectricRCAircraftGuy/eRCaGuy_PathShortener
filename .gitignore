@@ -37,3 +37,4 @@ __pycache__/
 
 # log file for my test_paths program
 /log.txt 
+/path_shortener_demo_log.txt
