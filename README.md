@@ -9,6 +9,8 @@ Done and works!
 
 # License
 
+GNU GPLv3 or later. See: [LICENSE.txt](LICENSE.txt).
+
 
 # eRCaGuy_PathShortener
 
@@ -162,19 +164,25 @@ _Tested on Linux Ubuntu 22.04._
     ```
 
 
-# Other programs
+# Other included programs
 
-```bash
-# Run the demo on the demo `test_paths` directory
-./path_shortener_demo.sh
+Other useful programs or submodules I wrote herein include:
 
-# Regenerate a new `test_paths` directory with new semi-random paths to test
-./generate_test_paths.py
-```
+1. `path_shortener_demo.sh`:
+    ```bash
+    # Run the demo on the demo `test_paths` directory
+    ./path_shortener_demo.sh
+    ```
 
-Other useful programs or submodules include:
-1. `ansi_colors.py` - allows you to print in colors. Ex: `print_red()`. 
-1. `Tee.py` - allows you to really easily "tee" your prints to both the console (stdout) and to one or more log files. 
+1. `generate_test_paths.py`:
+    ```bash
+    # Regenerate a new `test_paths` directory with new semi-random paths to test
+    ./generate_test_paths.py
+    ```
+
+1. `ansi_colors.py` module - allows you to print in colors. Ex: `print_red()`. 
+
+1. `Tee.py` module - allows you to really easily "tee" your prints to both the console (stdout) and to one or more log files. 
 
 
 # Design notes and TODOs
