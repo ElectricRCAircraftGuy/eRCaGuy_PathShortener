@@ -37,6 +37,7 @@ References:
 import ansi_colors as colors
 import config
 import paths
+import Tee
 
 # Third party imports
 from sortedcontainers import SortedList
@@ -767,10 +768,20 @@ def fix_paths(paths_all_set, paths_to_fix_sorted_list, path_stats, args, max_pat
 
     # 3. Double-check that all paths are now valid and short enough by walking the directory tree
     #    and checking each path length one last time.
+    # - also log some of the stats
     
     all_paths_set2 = walk_directory(shortened_dir)
     paths_to_fix_sorted_list2, path_stats2 = get_paths_to_fix(all_paths_set2)
     
+    output_dir = os.path.join(shortened_dir, ".eRCaGuy_PathShortener")
+    os.makedirs(output_dir, exist_ok=True)
+
+    before_and_after_filename = os.path.join(output_dir, "before_and_after_paths.txt")
+    
+    # begin tee-ing the output to a file
+    tee = Tee.Tee(before_and_after_filename)
+    tee.begin()
+
     print("BEFORE fixing and shortening paths:")
     path_stats.print()
     print()
@@ -801,17 +812,14 @@ def fix_paths(paths_all_set, paths_to_fix_sorted_list, path_stats, args, max_pat
 
     # 4. Print before and after paths. Also write them to files for later `meld` comparison.
 
-    output_dir = os.path.join(shortened_dir, ".eRCaGuy_PathShortener")
-    os.makedirs(output_dir, exist_ok=True)
-
     # Write some "about" info
     with open(os.path.join(output_dir, "about.txt"), "w") as file:
         file.write("Paths shorted and fixed by \"eRCaGuy_PathShortener\":\n"
             "https://github.com/ElectricRCAircraftGuy/eRCaGuy_PathShortener\n\n"
             "Sponsor me for more: https://github.com/sponsors/ElectricRCAircraftGuy\n")
 
-    paths_before_filename = os.path.join(output_dir, "1-paths_list_before.txt")
-    paths_after_filename  = os.path.join(output_dir, "2-paths_list_after.txt")
+    paths_before_filename = os.path.join(output_dir, "paths_list_1_before.txt")
+    paths_after_filename  = os.path.join(output_dir, "paths_list_2_after.txt")
 
     print("\nBefore and after paths:\n"
         + "Index:        Len: Original path\n"
@@ -857,18 +865,19 @@ def fix_paths(paths_all_set, paths_to_fix_sorted_list, path_stats, args, max_pat
             file_before.write(f"{i_path:4}: {len(original_path_str):4}: {paths_original_list[i_path]}\n")
             file_after.write(f"{i_path:4}: {len(TO_path_str):4}: {paths_TO_list[i_path]}\n")
 
-    # The file is closed automatically when the `with` block is exited.
+    # The above files opened via `with` are closed automatically when the `with` block is exited.
 
+    tee.end()  # end tee-ing the output to a file
+
+
+    # 5. Perform the `meld` comparison
+    
     print("'meld'-comparing the original and shortened directories...\n"
        + f"NB: IN MELD, BE SURE TO CLICK THE \"Keep highlighting\" BUTTON AT THE TOP!\n"
        + f"  Original:  {args.base_dir}/\n"
        + f"  Shortened: {shortened_dir}/\n"
        + f"Manually close 'meld' to continue.\n"
     )
-
-
-    # 5. Perform the `meld` comparison
-    
     ######### uncomment when done 
     # subprocess.run(["meld", paths_before_filename, paths_after_filename], check=True)
 

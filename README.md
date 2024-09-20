@@ -219,7 +219,7 @@ Fri. 20 Sept. 2024
 1. [x] Store output files into dir_shortened/.path_shortener/ instead of in dir_shortened_OUTPUT/
 1. [ ] Add a list and file to store all created namefiles too.
         Store it into that output dir as "namefiles.txt"
-1. [ ] Save the "Before and after paths" output to a file called "before_and_after_paths.txt" in the same dir as the output files. Use my `tee` library to make this easier since I want it to go to stdout too.
+1. [x] Save the "Before and after paths" output to a file called "before_and_after_paths.txt" in the same dir as the output files. Use my `tee` library to make this easier since I want it to go to stdout too.
 1. [not needed; just increase the hash length to avoid name collisions instead, if they occur] Maybe store final, shortened values in a set? 
 How can I guarantee no duplicate path names??
     Maybe check the disk at the time of renaming, and if a file already exists, convert the hash to a number and increment it until it decollides??
