@@ -9,7 +9,7 @@ Done and works!
 
 # License
 
-GNU GPLv3 or later. See: [LICENSE.txt](LICENSE.txt).
+GNU GPLv3 or later. See: [LICENSE](LICENSE).
 
 
 # eRCaGuy_PathShortener
