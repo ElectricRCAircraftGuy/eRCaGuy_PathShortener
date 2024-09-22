@@ -33,6 +33,7 @@ ANSI_FG_BLU = ";34"     # foreground color blue
 ANSI_FG_BR_BLU = ";94"  # foreground color bright blue
 ANSI_FG_RED = ";31"    # foreground color red
 ANSI_FG_BR_RED = ";91" # foreground color bright red
+ANSI_FG_BR_YEL = ";93" # foreground color bright yellow
 
 ANSI_END = "m"          # end of an ANSI formatting sequence
 
@@ -45,6 +46,7 @@ FBL = f"{ANSI_START}{ANSI_FG_BLU}{ANSI_END}"     # blue text
 FBB = f"{ANSI_START}{ANSI_FG_BR_BLU}{ANSI_END}"  # bright blue text
 FRE = f"{ANSI_START}{ANSI_FG_RED}{ANSI_END}"     # red text
 FBR = f"{ANSI_START}{ANSI_FG_BR_RED}{ANSI_END}"  # bright red text
+FBY = f"{ANSI_START}{ANSI_FG_BR_YEL}{ANSI_END}"  # bright yellow text
 
 
 def print_red(*args, **kwargs):
@@ -66,6 +68,15 @@ def print_red(*args, **kwargs):
     print(*colored_args, **kwargs)
 
 
+def print_yellow(*args, **kwargs):
+    """
+    Print the arguments in bright yellow text.
+    - Accepts all the same arguments as the built-in `print()` function.
+    """
+    colored_args = [f"{FBY}{arg}{END}" for arg in args]
+    print(*colored_args, **kwargs)
+
+
 def run_tests():
     # Test the colors
     
@@ -81,6 +92,8 @@ def run_tests():
 
     print_red("This text", "is")
     print_red("  bright", "red.")
+
+    print_yellow("This text is bright yellow.")
 
 
 if __name__ == "__main__":
