@@ -643,9 +643,9 @@ def fix_paths(paths_all_set, paths_to_fix_sorted_list, path_stats, args, max_pat
             i = 0
             for src, dst, error_str in broken_symlinks_list_of_tuples:
                 file.write(f"{i}:\n")
-                file.write(f"  src:   {src}\n")
-                file.write(f"  dst:   {dst}\n")
-                file.write(f"  error: {error_str}\n")
+                file.write(f"  - src:   {src}\n")
+                file.write(f"  - dst:   {dst}\n")
+                file.write(f"  - error: {error_str}\n")
                 file.write("\n")
                 i += 1
                 
