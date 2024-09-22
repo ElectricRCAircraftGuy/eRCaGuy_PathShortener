@@ -52,6 +52,7 @@ import pprint
 import re  # regular expressions
 import shutil
 import subprocess
+import sys
 import textwrap
 
 from pathlib import Path 
@@ -61,6 +62,8 @@ from pathlib import Path
 FULL_PATH_TO_SCRIPT = os.path.abspath(__file__)
 SCRIPT_DIRECTORY = str(os.path.dirname(FULL_PATH_TO_SCRIPT))
 SCRIPT_FILENAME = str(os.path.basename(FULL_PATH_TO_SCRIPT))
+EXECUTABLE_FULL_PATH = sys.argv[0]
+EXECUTABLE_NAME = os.path.basename(EXECUTABLE_FULL_PATH)
 
 EXIT_SUCCESS = 0
 EXIT_FAILURE = 1
@@ -309,6 +312,9 @@ def parse_args():
               3. Copies symlinks as files, so they are not broken on Windows.
             
             You may change other settings inside `config.py`.
+                                    
+            Example usage:
+                {EXECUTABLE_NAME} --meld path/to/Taxes/2023
                                     
             Source code: https://github.com/ElectricRCAircraftGuy/eRCaGuy_PathShortener
             {colors.FBB}Sponsor me:  https://github.com/sponsors/ElectricRCAircraftGuy{colors.END}
