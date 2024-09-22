@@ -77,7 +77,32 @@ def copy_directory(src, dst):
                        + f"You may need to manually remove that directory. Exiting.")
         exit(EXIT_FAILURE)
     
-    shutil.copytree(src_path, dst_path)
+    # shutil.copytree(src_path, dst_path, symlinks=False, ignore_dangling_symlinks=False)
+
+    ##########
+
+    try:
+        shutil.copytree(src_path, dst_path, symlinks=False, ignore_dangling_symlinks=False)
+    # "For copytree(), the exception argument is a list of 3-tuples (srcname, dstname, exception)."
+    # https://docs.python.org/3/library/shutil.html#shutil.Error
+    except shutil.Error as e:
+        pprint.pprint(e)
+        print()
+        pprint.pprint(e.args)
+        print()
+        pprint.pprint(e.args[0])
+        print()
+        print(str(e))
+        exit(EXIT_FAILURE)
+
+        errors = e.args[0]
+        for src, dst, error in errors:
+            colors.print_yellow(f"Warning: {error}.\n"
+                                f"                                      Skipping\"{src}\".")
+        ####### fix it: 
+        # create a file with this name at the destination location, containing a message that it is probably a broken symlink, and this error message into it! 
+        # 
+
     print(f"Copied \"{src}\" to \"{dst}\"")
     print("  Note: if symlinks were in the source directory, they were copied as real files.")
 
