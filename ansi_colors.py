@@ -41,6 +41,7 @@ ANSI_OFF = f"{ANSI_START}{ANSI_END}"
 F = ANSI_OFF    # alias
 END = ANSI_OFF  # alias
 
+FGN = f"{ANSI_START}{ANSI_END}"                  # Foreground None: normal, uncolored text
 FGR = f"{ANSI_START}{ANSI_FG_GRE}{ANSI_END}"     # green text
 FBL = f"{ANSI_START}{ANSI_FG_BLU}{ANSI_END}"     # blue text
 FBB = f"{ANSI_START}{ANSI_FG_BR_BLU}{ANSI_END}"  # bright blue text
@@ -94,6 +95,8 @@ def run_tests():
     print_red("  bright", "red.")
 
     print_yellow("This text is bright yellow.")
+
+    print(f"{FGN}This text is not colored.{END}")
 
 
 if __name__ == "__main__":

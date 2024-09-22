@@ -190,3 +190,13 @@ How can I guarantee no duplicate path names??
     Done: https://news.ycombinator.com/item?id=41605891
 1. [x] post it to LinkedIn
     Done: https://www.linkedin.com/posts/gabriel-staples_github-electricrcaircraftguyercaguypathshortener-activity-7243017526727614466-c3O4?utm_source=share&utm_medium=member_desktop
+
+Sun. 22 Sept. 2024
+FUTURE WORK [no need to do it now]
+1. [ ] Update `generate_test_paths.py` to auto-create a bunch of broken symlinks too, for testing.
+    For now I have manually created these ones instead: 
+    ```
+    test_paths/broken_symlink1 -> path/to/nowhere
+    test_paths/broken_symlink2 -> path/to/nowhere2
+    test_paths/broken_symlink3 -> path/to/nowhere3
+    ```
