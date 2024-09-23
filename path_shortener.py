@@ -314,6 +314,7 @@ def parse_args():
             You may change other settings inside `config.py`.
                                     
             Example usage:
+                # Fix and shorten all paths in the directory 'Taxes/2023', timing how long it takes
                 time {EXECUTABLE_NAME} --meld path/to/Taxes/2023
                                     
             Source code: https://github.com/ElectricRCAircraftGuy/eRCaGuy_PathShortener
