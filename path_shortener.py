@@ -783,7 +783,9 @@ def fix_paths(paths_all_set, paths_to_fix_sorted_list, path_stats, args, max_pat
         # - The shortening process below will continually shorten `allowed_segment_len` until the
         #   path is short enough, OR until this value reaches 0, at which point it cannot be
         #   shortened any further.
-        allowed_segment_len = config.MAX_ALLOWED_SEGMENT_LEN
+        max_segment_len = max(len(segment) for segment in path)
+        print(f"  max_segment_len: {max_segment_len}") # debugging
+        allowed_segment_len = max_segment_len
         path_len = paths.get_len(path_longest)
         while (path_len > config.MAX_ALLOWED_PATH_LEN 
                and allowed_segment_len > 0):
@@ -1030,19 +1032,20 @@ def fix_paths(paths_all_set, paths_to_fix_sorted_list, path_stats, args, max_pat
 
     tee.end()  # end tee-ing the output to a file
 
-    print(f"{colors.FGR}See the files in \"{output_dir}\" for more details.{colors.END}")
-
 
     # 5. Perform the `meld` comparison
     
     if args.meld:
         print("\n'meld'-comparing the original and shortened directories...\n"
-        + f"NB: IN MELD, BE SURE TO CLICK THE \"Keep highlighting\" BUTTON AT THE TOP!\n"
         + f"  Original:  {args.base_dir}/\n"
         + f"  Shortened: {shortened_dir}/\n"
+        + f"NB: IN MELD, BE SURE TO CLICK THE \"Keep highlighting\" BUTTON AT THE TOP!\n"
         + f"Manually close 'meld' to continue.\n"
         )
         subprocess.run(["meld", paths_before_filename, paths_after_filename], check=True)
+
+
+    return output_dir
 
 
 def print_sponsor_message():
@@ -1066,9 +1069,11 @@ def main():
         exit(EXIT_SUCCESS)
 
     print_paths_to_fix(paths_to_fix_sorted_list)
-    fix_paths(all_paths_set, paths_to_fix_sorted_list, path_stats, args, len("_shortened"))
+    output_dir = fix_paths(
+        all_paths_set, paths_to_fix_sorted_list, path_stats, args, len("_shortened"))
 
     print(f"{colors.FGR}Completed successfully.{colors.END}")
+    print(f"{colors.FGR}See the log files in \"{output_dir}\" for more details.{colors.END}")
     print_sponsor_message()
 
 
