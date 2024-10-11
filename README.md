@@ -18,8 +18,9 @@ A tool to fix and shorten paths on Linux (4096 chars max path length) &amp; Mac 
 
 This allows you to easily send documents and zipped up folders from your Linux computer to Windows friends, clients, or workers without having to worry about the path length being too long for them to unzip or use the files, or the files having illegal chars or symlinks in them. 
 
-`path_shortener` does the following:
+`path_shortener my_dir` does the following:
 
+1. Copies the contents of `my_dir` into `my_dir_shortened`, so that it does *not* modify your original files.
 1. Removes illegal Windows characters from paths, including: `<>:"\|?*`.
 1. Shortens all paths to a length that is acceptable on Windows, as specified by you inside of `config.py`.
 1. Copies symlinks as files, so they are not broken on Windows.
@@ -37,12 +38,13 @@ _As a safety rule, back up your original directory into a new location before ru
     # Recursively find all broken symlinks in the current directory (.)
     fix_broken_symlinks
 
-    # (Dry run) fix all broken symlinks in the current dir (.) by replacing their target paths
-    # with John's home dir instead of Gabriel's.
+    # (Dry run) fix all broken symlinks in the current dir (.) by replacing 
+    # their target paths with John's home dir instead of Gabriel's.
     fix_broken_symlinks . '/home/gabriel/some/dir' 'home/john/some/dir'
     
-    # (Real run) fix all broken symlinks in the current dir (.) by replacing their target paths
-    # with John's home dir instead of Gabriel's. **Relative** symlinks will be created in the end.
+    # (Real run) fix all broken symlinks in the current dir (.) by replacing 
+    # their target paths with John's home dir instead of Gabriel's. 
+    # **Relative** symlinks will be created in the end.
     fix_broken_symlinks . '/home/gabriel/some/dir' 'home/john/some/dir' -f
     ```
 
@@ -63,7 +65,7 @@ _As a safety rule, back up your original directory into a new location before ru
     path_shortener path/to/your/directory
     ```
 
-1. Zip it up and send it over! You have now ensured that they have copies of good files instead of symlinks or broken symlinks, and that all paths are short enough and contain no illegal Windows characters.
+1. Zip up `path/to/your/directory_shortened` and send it over! You have now ensured that they have copies of good files instead of symlinks or broken symlinks, and that all paths are short enough and contain no illegal Windows characters.
 
 
 # More details
