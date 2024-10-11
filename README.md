@@ -26,9 +26,31 @@ This allows you to easily send documents and zipped up folders from your Linux c
 
 _As a safety rule, back up your original directory into a new location before running this program. I am not responsible for data loss._
 
-**Basic usage:**
 
-Note that prior to installation, you must use `path/to/path_shortener.py` to run the program. If you are in the directory where it is located, use `./path_shortener.py`. After installation, you can use simply `path_shortener` to run the program.
+# Recommended usage
+
+1. Fix broken symlinks using [`fix_broken_symlinks`](https://github.com/ElectricRCAircraftGuy/eRCaGuy_dotfiles/blob/master/useful_scripts/fix_broken_symlinks.sh). 
+1. Replace absolute symlinks with relative symlinks:
+    ```bash
+    # see the below commands in the help menu for fix_broken_symlinks
+    fix_broken_symlinks -h
+
+    # do a dry-run replacement of all absolute symlinks with relative symlinks
+    symlinks -rsvt . | grep '^changed'
+
+    # do the actual replacement of all absolute symlinks with relative symlinks
+    symlinks -rsvc .
+    ```
+1. Run `path_shortener` on the directory you want to send to Windows:
+    ```bash
+    path_shortener path/to/your/directory
+    ```
+1. Zip it up and send it over! You have now ensured that they have copies of good files instead of symlinks or broken symlinks, and that all paths are short enough and contain no illegal Windows characters.
+
+
+# More details
+
+Note that prior to installation (see installation instructions below), you must use `path/to/path_shortener.py` to run the program. If you are in the directory where it is located, use `./path_shortener.py`. After installation, you can use simply `path_shortener` to run the program.
 
 ```bash
 # help menu
@@ -62,7 +84,7 @@ If you run the above command, it will:
     sun_delta_crash_dog_delta_green_iota_sky
     ```
 
-    For a file fixed or shortened to `nu_crash_upsilon_#E209.txt`, the namefile will be called `nu_crash_upsilon_#E209_NAME.txt` and will contain:
+    For a file named `nu_crash_upsilon>.txt` which is fixed to `nu_crash_upsilon_#E209.txt`, the namefile will be called `nu_crash_upsilon_#E209_NAME.txt` and will contain:
     ```
     Original file name:
     nu_crash_upsilon>.txt
@@ -84,7 +106,7 @@ Run the program with `-m` or `--meld` to automatically get this before and after
 </p>
 
 
-# Installation & usage
+# Installation & example usage
 
 _Tested on Linux Ubuntu 22.04._
 
