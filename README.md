@@ -27,10 +27,26 @@ This allows you to easily send documents and zipped up folders from your Linux c
 _As a safety rule, back up your original directory into a new location before running this program. I am not responsible for data loss._
 
 
-# Recommended usage
+# Recommended steps to send files from Linux to Windows
 
-1. Fix broken symlinks using [`fix_broken_symlinks`](https://github.com/ElectricRCAircraftGuy/eRCaGuy_dotfiles/blob/master/useful_scripts/fix_broken_symlinks.sh). 
-1. Replace absolute symlinks with relative symlinks:
+1. Fix broken symlinks using my [`fix_broken_symlinks`](https://github.com/ElectricRCAircraftGuy/eRCaGuy_dotfiles/blob/master/useful_scripts/fix_broken_symlinks.sh) tool from my [eRCaGuy_dotfiles](https://github.com/ElectricRCAircraftGuy/eRCaGuy_dotfiles) repo:
+    ```bash
+    # see help menu
+    fix_broken_symlinks -h
+
+    # Recursively find all broken symlinks in the current directory (.)
+    fix_broken_symlinks
+
+    # (Dry run) fix all broken symlinks in the current dir (.) by replacing their target paths
+    # with John's home dir instead of Gabriel's.
+    fix_broken_symlinks . '/home/gabriel/some/dir' 'home/john/some/dir'
+    
+    # (Real run) fix all broken symlinks in the current dir (.) by replacing their target paths
+    # with John's home dir instead of Gabriel's. **Relative** symlinks will be created in the end.
+    fix_broken_symlinks . '/home/gabriel/some/dir' 'home/john/some/dir' -f
+    ```
+
+1. Replace any other absolute symlinks with relative symlinks:
     ```bash
     # see the below commands in the help menu for fix_broken_symlinks
     fix_broken_symlinks -h
@@ -41,10 +57,12 @@ _As a safety rule, back up your original directory into a new location before ru
     # do the actual replacement of all absolute symlinks with relative symlinks
     symlinks -rsvc .
     ```
+
 1. Run `path_shortener` on the directory you want to send to Windows:
     ```bash
     path_shortener path/to/your/directory
     ```
+
 1. Zip it up and send it over! You have now ensured that they have copies of good files instead of symlinks or broken symlinks, and that all paths are short enough and contain no illegal Windows characters.
 
 
