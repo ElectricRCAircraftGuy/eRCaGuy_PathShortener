@@ -111,29 +111,37 @@ def copy_directory(src, dst):
             colors.print_yellow(f"src: {src}")
             colors.print_yellow(f"dst: {dst}")
 
-            # Ensure that all errors are "Errno 2", since those are the only types of errors 
-            # I am attempting to handle here. 
+            # Ensure that all errors are Error numbers I have seen before and know how to handle.
             match_obj = re.search(r"^\[Errno (\d+)\]", error_str)
             errno = int(match_obj.group(1))
-            if errno != 2:
+
+            if errno == 2:
+                # Check if the error is a missing file or a broken symlink, and save them
+                is_broken_symlink = False
+                if os.path.islink(src):
+                    is_broken_symlink = True
+                    broken_symlinks_list_of_tuples.append((src, dst, error_str))
+                else:
+                    print_red("Error: missing file. This is unexpected. I only expected "
+                            "broken symlinks. Somehow a file was moved or deleted during the copy.")
+                    colors.print_red(f"  error: {error_str}")
+                    colors.print_red(f"  src: {src}")
+                    colors.print_red(f"  dst: {dst}")
+                    exit(EXIT_FAILURE)
+
+            # TODO: figure out how to handle this one. This warning happens when there are circular
+            # symlinks and it copies circular symlinks repeatedly. 
+            #
+            # if errno == 40:
+            #     pass
+            
+            else:
                 colors.print_yellow(f"error: {error_str}")
                 colors.print_yellow(f"src: {src}")
                 colors.print_yellow(f"dst: {dst}")
-                colors.print_red(f"Error: Unexpected errno: {errno}. Exiting.")
+                colors.print_red(f"Error in {SCRIPT_FILENAME}: Unexpected errno: {errno}. Exiting.")
                 exit(EXIT_FAILURE)
 
-            # Check if the error is a missing file or a broken symlink, and save them
-            is_broken_symlink = False
-            if os.path.islink(src):
-                is_broken_symlink = True
-                broken_symlinks_list_of_tuples.append((src, dst, error_str))
-            else:
-                print_red("Error: missing file. This is unexpected. I only expected "
-                          "broken symlinks. Somehow a file was moved or deleted during the copy.")
-                colors.print_red(f"  error: {error_str}")
-                colors.print_red(f"  src: {src}")
-                colors.print_red(f"  dst: {dst}")
-                exit(EXIT_FAILURE)
 
     # For each broken symlink, create a file with this name at the destination location, containing
     # appropriate error messages
