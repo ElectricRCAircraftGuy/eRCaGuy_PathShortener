@@ -688,7 +688,10 @@ def fix_paths(args, max_path_len_already_used):
     shortened_dir = args.base_dir + "_shortened"
     broken_symlinks_list_of_tuples = copy_directory(args.base_dir, shortened_dir, args)
 
-    paths_all_set, paths_to_fix_sorted_list, path_stats = walk_dir_and_exit_if_done(args)
+    paths_all_set, paths_to_fix_sorted_list, path_stats = walk_dir_and_exit_if_done(shortened_dir)
+
+    # TODO: `paths_all_set` can later be used to avoid path collisions
+    # as new, corrected paths are generated. For now, though, it isn't being used. 
 
     output_dir = os.path.join(shortened_dir, ".eRCaGuy_PathShortener")
     os.makedirs(output_dir, exist_ok=True)
@@ -710,19 +713,6 @@ def fix_paths(args, max_path_len_already_used):
         else:
             file.write("No broken symlinks found.\n")
 
-    paths_all_list = [list(Path(path).parts) for path in paths_all_set]
-    for path in paths_all_list:
-        path[0] = shortened_dir
-
-    # # debugging
-    # print("\nPaths all list:", end="")
-    # print_paths_list(paths_all_list)  
-
-    # reassemble back into a set
-    # TODO: `paths_all_set` or `paths_all_list` can later be used to avoid path collisions
-    # as new, corrected paths are generated. For now, though, they aren't being used. 
-    paths_all_set = {paths.list_to_path(path) for path in paths_all_list}
-    
     # # debugging
     # print("\nPaths all set:")
     # for path in paths_all_set:
@@ -1109,11 +1099,11 @@ def print_sponsor_message():
     print(f"{colors.FBB}Sponsor me for more: https://github.com/sponsors/ElectricRCAircraftGuy{colors.END}")
 
 
-def walk_dir_and_exit_if_done(args):
+def walk_dir_and_exit_if_done(dir_to_walk):
     """
     Walk the directory and exit if there is nothing to do.
     """
-    all_paths_set = walk_directory(args.base_dir)
+    all_paths_set = walk_directory(dir_to_walk)
     # pprint.pprint(all_paths_set)
     paths_to_fix_sorted_list, path_stats = get_paths_to_fix(
         all_paths_set, max_path_len_already_used=len("_shortened"))
@@ -1134,7 +1124,7 @@ def main():
     args = parse_args()
     print_global_variables(config)
 
-    walk_dir_and_exit_if_done(args)
+    walk_dir_and_exit_if_done(args.base_dir)
 
     output_dir = fix_paths(args, len("_shortened"))
 
