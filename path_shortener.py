@@ -1107,10 +1107,10 @@ def print_sponsor_message():
     print(f"{colors.FBB}Sponsor me for more: https://github.com/sponsors/ElectricRCAircraftGuy{colors.END}")
 
 
-def main():
-    args = parse_args()
-    print_global_variables(config)
-
+def walk_dir_and_exit_if_done(args):
+    """
+    Walk the directory and exit if there is nothing to do.
+    """
     all_paths_set = walk_directory(args.base_dir)
     # pprint.pprint(all_paths_set)
     paths_to_fix_sorted_list, path_stats = get_paths_to_fix(
@@ -1124,6 +1124,16 @@ def main():
         exit(EXIT_SUCCESS)
 
     print_paths_to_fix(paths_to_fix_sorted_list)
+
+    return all_paths_set, paths_to_fix_sorted_list, path_stats
+
+
+def main():
+    args = parse_args()
+    print_global_variables(config)
+
+    all_paths_set, paths_to_fix_sorted_list, path_stats = walk_dir_and_exit_if_done(args)
+
     output_dir = fix_paths(
         all_paths_set, paths_to_fix_sorted_list, path_stats, args, len("_shortened"))
 

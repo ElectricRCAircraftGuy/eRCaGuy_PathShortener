@@ -31,6 +31,7 @@ __pycache__/
 
 # /test_paths/
 /test_paths_shortened/
+/test_paths_shortened*
 
 /test_paths_tree*.txt
 /test_paths_shortened_OUTPUT/
