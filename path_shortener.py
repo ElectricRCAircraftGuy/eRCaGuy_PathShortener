@@ -72,6 +72,9 @@ EXIT_FAILURE = 1
 def copy_directory(src, dst):
     src_path = Path(src)
     dst_path = Path(dst)
+
+    original_src = src
+    original_dst = dst
     
     if not src_path.exists():
         colors.print_red(f"Error: Source directory \"{src}\" does not exist. Exiting.")
@@ -129,11 +132,35 @@ def copy_directory(src, dst):
                     colors.print_red(f"  dst: {dst}")
                     exit(EXIT_FAILURE)
 
-            # TODO: figure out how to handle this one. This warning happens when there are circular
-            # symlinks and it copies circular symlinks repeatedly. 
+            # TODO: run the `find` command below automatically to look for circular symlinks BEFORE
+            # the copy! And...probably handle them gracefully automatically too. <==================
             #
-            # if errno == 40:
-            #     pass
+            # This warning (errno 40) happens when there are circular symlinks and it copies
+            # circular symlinks repeatedly.
+            # - TODO: figure out how to handle this one automatically instead of requiring user
+            #   intervention.  
+            if errno == 40:
+                command_to_run = f"find \"{original_src}\" -follow -printf \"\""
+                colors.print_red()
+                colors.print_red(
+                    f"Error in {SCRIPT_FILENAME}: errno {errno}: circular "
+                    f"symlinks detected. This is a known issue with `shutil.copytree()`. "
+                    f"Run:"
+                )
+                colors.print_blue(f"{command_to_run}")
+                colors.print_red(f"...to find the circular symlinks. Then, **manually fix "
+                    f"them**, remove \"{original_dst}\", and try again."
+                )
+                colors.print_red("Exiting.")
+
+                # TODO: get our script to do this. Meanwhile, just print the find command for us to
+                # run manually.
+                # result = subprocess.run(command_to_run, shell=True, check=True, 
+                #     capture_output=True, text=True)
+                # colors.print_blue(result.stdout)
+                # colors.print_red(result.stderr)
+
+                exit(EXIT_FAILURE)
             
             else:
                 colors.print_yellow(f"error: {error_str}")

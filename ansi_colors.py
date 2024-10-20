@@ -87,6 +87,15 @@ def print_green(*args, **kwargs):
     print(*colored_args, **kwargs)
 
 
+def print_blue(*args, **kwargs):
+    """
+    Print the arguments in bright blue text.
+    - Accepts all the same arguments as the built-in `print()` function.
+    """
+    colored_args = [f"{FBB}{arg}{END}" for arg in args]
+    print(*colored_args, **kwargs)
+
+
 def run_tests():
     # Test the colors
     
