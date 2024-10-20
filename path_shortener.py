@@ -369,12 +369,10 @@ def parse_args():
     parser.add_argument("-m", "--meld", action="store_true", help="Use 'meld' to compare "
                         "the original paths with the new paths when done. Requires meld "
                         "to be installed.")
-    parser.add_argument("-s", "--keep_symlinks", action="store_true", help="Keep all symlinks as "
+    parser.add_argument("-k", "--keep_symlinks", action="store_true", help="Keep all symlinks as "
         "symlinks rather than copying them as files or folders. This can help if you have "
-        "circular symlink issues, OR if some paths are still too long after shortening, as this "
-        "is a result of a symlinked folder getting copied as a real folder, which adds "
-        "additional path length. **TODO:** rather than keeping symlinks as symlinks, find "
-        "a better way to handle circular symlinks and long paths due to symlinked folders.")
+        "circular symlink issues. **TODO:** rather than keeping symlinks as symlinks, find "
+        "a better way to handle circularly-linked symlinks to folders.")
 
     # Parse arguments; note: this automatically exits the program here if the arguments are invalid
     # or if the user requested the help menu.
