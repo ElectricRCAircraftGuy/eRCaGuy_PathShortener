@@ -655,7 +655,7 @@ def write_namefile_to_disk(namefiles_list, namefile_path, name_old, is_dir):
     namefiles_list.append(namefile_path)
 
 
-def fix_paths(paths_all_set, paths_to_fix_sorted_list, path_stats, args, max_path_len_already_used):
+def fix_paths(args, max_path_len_already_used):
     """
     Fix the paths in `paths_to_fix_sorted_list`: 
 
@@ -687,6 +687,8 @@ def fix_paths(paths_all_set, paths_to_fix_sorted_list, path_stats, args, max_pat
     print("\nCopying files to a new directory...")
     shortened_dir = args.base_dir + "_shortened"
     broken_symlinks_list_of_tuples = copy_directory(args.base_dir, shortened_dir, args)
+
+    paths_all_set, paths_to_fix_sorted_list, path_stats = walk_dir_and_exit_if_done(args)
 
     output_dir = os.path.join(shortened_dir, ".eRCaGuy_PathShortener")
     os.makedirs(output_dir, exist_ok=True)
@@ -1132,10 +1134,9 @@ def main():
     args = parse_args()
     print_global_variables(config)
 
-    all_paths_set, paths_to_fix_sorted_list, path_stats = walk_dir_and_exit_if_done(args)
+    walk_dir_and_exit_if_done(args)
 
-    output_dir = fix_paths(
-        all_paths_set, paths_to_fix_sorted_list, path_stats, args, len("_shortened"))
+    output_dir = fix_paths(args, len("_shortened"))
 
     print(f"{colors.FGR}Completed successfully.{colors.END}")
     print(f"{colors.FGR}See the log files in \"{output_dir}\" for more details.{colors.END}")
