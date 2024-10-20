@@ -778,45 +778,55 @@ def fix_paths(args, max_path_len_already_used):
         print(f"  i_last_column: {i_last_column}")
         print(f"  path_len: {path_len}")
 
-        # Replace illegal Windows characters for ALL columns, adding a namefile for each right-most
-        # column if a rename is needed.
+        # 1. Replace illegal Windows characters for ALL columns, adding a namefile for each
+        #    right-most column if a rename is needed.
         i_column = i_last_column
         while i_column >= 0:
-            stem_old = Path(path[i_column]).stem
+            name_old = path[i_column]
             path[i_column] = replace_chars(path[i_column], config.ILLEGAL_WINDOWS_CHARS, "_")
-            stem_new = Path(path[i_column]).stem
+            name_new = path[i_column]
 
             # Add hashes to all renamed paths
-            if stem_old != stem_new:
+            if name_old != name_new:
                 full_path_original = str(Path(*(paths_original_list[i_row][0:i_column + 1])))
 
                 # # debugging
-                # print(f"stem_old: {stem_old}")
-                # print(f"stem_new: {stem_new}")
+                # print(f"name_old: {name_old}")
+                # print(f"name_new: {name_new}")
                 # print(f"full_path_original: {full_path_original}")
 
-                # Note: for paths that have illegal chars removed, use a different prefix char
-                # before the hash to distinguish them from paths that were simply shortened.
-                stem_new += (config.HASH_PREFIX_FOR_ILLEGALS 
-                             + hash_to_hex(full_path_original, config.HASH_LEN))
-                path_new = Path(path[i_column]).with_stem(stem_new)
-                path[i_column] = str(path_new)
+                # Assume it's a directory, as it can only possibly be a file if it's the right-most
+                # column.  
+                is_dir = True  
+                if i_column == i_last_column:
+                    is_dir = paths.is_dir(paths_FROM_list[i_row])  # will store False for files
 
-            # Create a namefile for the right-most column if it was renamed to remove illegal 
-            # Windows characters. 
-            # - NB: nearly this same logic is also inside of `shorten_segment()`
-            if (i_column == i_last_column 
-                and path[i_column] != paths_original_list[i_row][i_column]):
+                if not is_dir: 
+                    # It's a file, so handle stems (where "file.txt" is in format "stem.suffix")
+                    stem_new = Path(name_new).stem
+                    stem_new += (config.HASH_PREFIX_FOR_ILLEGALS
+                                    + hash_to_hex(full_path_original, config.HASH_LEN))
+                    path_new = Path(name_new).with_stem(stem_new)
+                    path[i_column] = str(path_new)
+                else:
+                    # It's a directory, so even if it has periods in the dir name, it has no stems
+                    # to handle!
+                    path[i_column] = name_new
 
-                # If the path was renamed, then it will need a namefile to store its original name.
-                is_dir = paths.is_dir(paths_FROM_list[i_row])
-                namefile_path = paths.make_namefile_name(path[i_column], is_dir)
-                paths_longest_namefiles_list[i_row][i_column] = namefile_path
+                # Create a namefile for the right-most column if it was renamed to remove illegal 
+                # Windows characters. 
+                # - If the path was renamed, then it will need a namefile to store its original
+                #   name.
+                # - NB: nearly this same logic is also inside of `shorten_segment()`
+                if i_column == i_last_column: 
+                    namefile_path = paths.make_namefile_name(path[i_column], is_dir)
+                    paths_longest_namefiles_list[i_row][i_column] = namefile_path
 
             i_column -= 1
 
-        # Shorten the path until it is short enough OR until we cannot shorten the segments 
-        # any further
+
+        # 2. Shorten the path until it is short enough OR until we cannot shorten the segments any
+        #    further
         #
         # Allow up to this many chars in a given file or folder segment, + the extra chars used to
         # identify the segment. 
