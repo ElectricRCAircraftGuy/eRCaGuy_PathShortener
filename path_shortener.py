@@ -69,7 +69,7 @@ EXIT_SUCCESS = 0
 EXIT_FAILURE = 1
 
 
-def copy_directory(src, dst):
+def copy_directory(src, dst, args):
     src_path = Path(src)
     dst_path = Path(dst)
 
@@ -92,7 +92,8 @@ def copy_directory(src, dst):
     # during the copy. 
 
     try:
-        shutil.copytree(src_path, dst_path, symlinks=False, ignore_dangling_symlinks=False)
+        shutil.copytree(
+            src_path, dst_path, symlinks=args.keep_symlinks, ignore_dangling_symlinks=False)
 
     # Handle errors with missing files or broken symlinks
     # - NB: `shutil.Error`'s exception argument at index 0 (`shutil.Error.args[0]`) contains
@@ -151,6 +152,8 @@ def copy_directory(src, dst):
                 colors.print_red(f"...to find the circular symlinks. Then, **manually fix "
                     f"them**, remove \"{original_dst}\", and try again."
                 )
+                colors.print_red("OR, use the `--keep_symlinks` flag to keep symlinks as symlinks "
+                    "instead of copying them as files or folders.")
                 colors.print_red("Exiting.")
 
                 # TODO: get our script to do this. Meanwhile, just print the find command for us to
@@ -366,10 +369,21 @@ def parse_args():
     parser.add_argument("-m", "--meld", action="store_true", help="Use 'meld' to compare "
                         "the original paths with the new paths when done. Requires meld "
                         "to be installed.")
+    parser.add_argument("-s", "--keep_symlinks", action="store_true", help="Keep all symlinks as "
+        "symlinks rather than copying them as files or folders. This can help if you have "
+        "circular symlink issues, OR if some paths are still too long after shortening, as this "
+        "is a result of a symlinked folder getting copied as a real folder, which adds "
+        "additional path length. **TODO:** rather than keeping symlinks as symlinks, find "
+        "a better way to handle circular symlinks and long paths due to symlinked folders.")
 
     # Parse arguments; note: this automatically exits the program here if the arguments are invalid
     # or if the user requested the help menu.
     args = parser.parse_args()
+
+    # debugging
+    # print(f"args.keep_symlinks = {args.keep_symlinks}")
+    # print(f"args = {args}")
+    # exit()
 
     # if args.F:
     #     print("Force flag is set.")
@@ -672,7 +686,7 @@ def fix_paths(paths_all_set, paths_to_fix_sorted_list, path_stats, args, max_pat
     # Note: this also automatically fixes the symlinks by replacing them with real files. 
     print("\nCopying files to a new directory...")
     shortened_dir = args.base_dir + "_shortened"
-    broken_symlinks_list_of_tuples = copy_directory(args.base_dir, shortened_dir)
+    broken_symlinks_list_of_tuples = copy_directory(args.base_dir, shortened_dir, args)
 
     output_dir = os.path.join(shortened_dir, ".eRCaGuy_PathShortener")
     os.makedirs(output_dir, exist_ok=True)
@@ -995,6 +1009,11 @@ def fix_paths(paths_all_set, paths_to_fix_sorted_list, path_stats, args, max_pat
     else:
         colors.print_red("Error: some paths are still too long after shortening.")
         print_paths_to_fix(paths_to_fix_sorted_list2)
+        colors.print_red("Saying again: Error: some paths are still too long after shortening.")
+        colors.print_blue("As an intermedite work-around until I can fix this better, run "
+            "this tool again on the shortened directory.")
+        colors.print_blue("OR use the `--keep_symlinks` flag to keep symlinks as symlinks, on the "
+            "first run, to avoid this issue until I can fix it properly.")
         # TODO: gracefully handle this instead of exiting here.
         colors.print_red("Exiting.")
         exit(EXIT_FAILURE)

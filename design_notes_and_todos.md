@@ -200,3 +200,8 @@ FUTURE WORK [no need to do it now]
     test_paths/broken_symlink2 -> path/to/nowhere2
     test_paths/broken_symlink3 -> path/to/nowhere3
     ```
+
+Sat. 19 Oct. 2024
+1. [ ] THERE'S STILL A BUG! Run this on my lawer dir and you'll see it's broken. 
+1. [ ] Update the `test_paths` dir to force it to break there too. It appears to be a bug due to how I separate file stems from their extensions. I need to gracefully handle cases where there are many periods in the filename or folder name. 
+1. [ ] Fix the bug. 
