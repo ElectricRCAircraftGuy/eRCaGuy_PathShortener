@@ -140,7 +140,7 @@ def copy_directory(src, dst, args):
             # circular symlinks repeatedly.
             # - TODO: figure out how to handle this one automatically instead of requiring user
             #   intervention.  
-            if errno == 40:
+            elif errno == 40:
                 command_to_run = f"find \"{original_src}\" -follow -printf \"\""
                 colors.print_red()
                 colors.print_red(
