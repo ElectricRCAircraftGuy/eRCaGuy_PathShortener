@@ -607,6 +607,7 @@ def shorten_segment_and_update_longest_namefiles_list(i_row, i_column,
         segment_short = stem_new
 
     paths_TO_list[i_row][i_column] = segment_short
+    ############# AREAS TO FIX #############
     paths_longest_namefiles_list[i_row][i_column] = segment_short
 
     # debugging
@@ -620,14 +621,51 @@ def shorten_segment_and_update_longest_namefiles_list(i_row, i_column,
     #    that is the namefile whose path will determine the max path length for this path
     #    shortening operation.
 
-    if i_column == i_last_column and (segment_short != segment_long or 
-                                      segment_short != paths_original_list[i_row][i_column]):
-        # We are at the right-most column, so also capture the namefile path into its list
-        namefile_path = paths.make_namefile_name(segment_short, is_dir)
-        paths_longest_namefiles_list[i_row][i_column] = namefile_path
+    path_len_override = False
+    path_longest = paths_longest_namefiles_list[i_row]
 
+    ############# AREAS TO FIX #############
+    if (segment_short != segment_long 
+        or segment_short != paths_original_list[i_row][i_column]):
+        # Recalculate the namefile for this segment, and compare it to the old namefile, and
+        # keep whichever one has the longest path length.
+
+        namefile_path = paths.make_namefile_name(segment_short, is_dir)
         # debugging [ENABLE TO SHOW THE PATH SHORTENING TAKE PLACE]
         # print(f"namefile_path: {namefile_path}")  
+
+        if i_column == i_last_column:
+            # We are at the right-most column, so also capture the namefile path into its list
+            # at this column. 
+            paths_longest_namefiles_list[i_row][i_column] = namefile_path
+        else:
+            # We are in any other column, so let's construct a new total namefile path to this
+            # column and compare it to the old one and keep whichever is longer.
+            len_old = paths.get_len(path_longest)
+
+            namefile_full_path_new = paths_longest_namefiles_list[i_row][0:i_column + 1]
+            namefile_full_path_new[i_column] = namefile_path
+            len_new = paths.get_len(namefile_full_path_new)
+
+            if len_new > len_old:
+                # TODO: come up with a test that will properly test this when I run 
+                # `./path_shortener_demo.sh`. Currently, I know this works just from testing it
+                # on some personal paths manually where the code failed until I did this.
+                
+                path_len_override = True
+                path_len = len_new
+
+                # debugging
+                colors.print_yellow("NOTE: USING NON-RIGHT-MOST-COLUMN NAMEFILE PATH since "
+                                    "this one is longer!")
+                print(f"len_old: {len_old}")
+                print(f"len_new: {len_new}")
+                print(f"namefile_full_path_new: {namefile_full_path_new}")
+
+    if not path_len_override:
+        path_len = paths.get_len(path_longest)
+
+    return path_len
 
 
 def update_paths_in_list(paths_to_update_list, path, path_chunk_list_old, i_column):
@@ -862,13 +900,11 @@ def fix_paths(args, max_path_len_already_used):
             # Use `> 0` so that we do NOT shorten the base dir; ex: "whatever_shortened/" 
             while i_column > 0:
                 # Shorten the segment in-place inside the paths_TO_list
-                shorten_segment_and_update_longest_namefiles_list(
+                path_len = shorten_segment_and_update_longest_namefiles_list(
                     i_row, i_column,
                     paths_original_list, paths_FROM_list, 
                     paths_TO_list, paths_longest_namefiles_list, 
                     allowed_segment_len)
-                
-                path_len = paths.get_len(path_longest)  # update
                 
                 if path_len <= config.MAX_ALLOWED_PATH_LEN:
                     break
@@ -965,7 +1001,7 @@ def fix_paths(args, max_path_len_already_used):
                 # 2) Valid for directories only: at the same level as the shortened dir
                 # - Ex path: "base_dir/!shortened_dir@ABCD_NAME.txt"
                 # Remove one of the two `!!` chars from the front of the namefile, inside the dir.
-                namefile = Path(namefile).name[1:]
+                namefile = Path(namefile).name[1:]  # the [1:] removes one of the leading `!` chars
                 namefile_path2 =  base_dir / namefile
 
                 # # debugging

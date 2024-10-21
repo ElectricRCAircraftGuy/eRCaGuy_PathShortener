@@ -49,7 +49,8 @@ def make_namefile_name(file_or_dir_name, is_dir, dir_prefix="!!"):
     If the original name is "file@ABCD.doc", then the namefile name will be "file@ABCD_NAME.txt". 
 
     For directories:
-    If the original name is "dir@ABCD", then the namefile name will be "!dir@ABCD_NAME.txt".
+    If the original name is "dir@ABCD", then the namefile name will be 
+    "dir@ABCD/!!dir@ABCD_NAME.txt".
     """
 
     if is_dir:
