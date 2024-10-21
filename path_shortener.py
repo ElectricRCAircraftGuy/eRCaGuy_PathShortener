@@ -9,7 +9,7 @@ Example usage:
 # General example 
 ./path_shortener.py test_paths
 
-rm -r test_paths_shortened; ./path_shortener.py test_paths
+rm -r test_paths_short; ./path_shortener.py test_paths
 # <======= BEST ========
 
 # Help menu
@@ -107,7 +107,7 @@ def copy_directory(src, dst, args):
             # Example debugging output:
             #   
             #   src: test_paths/broken_symlink2
-            #   dst: test_paths_shortened/broken_symlink2
+            #   dst: test_paths_short/broken_symlink2
             #   error: [Errno 2] No such file or directory: 'test_paths/broken_symlink2'
             #   
             colors.print_yellow(f"\nWARNING:")
@@ -342,7 +342,7 @@ def parse_args():
             Fix and shorten long paths to make them accessible on Windows.
                                     
             This script makes a full copy of the passed-in 'dir' to a new dir called
-            'dir_shortened', and performs the following on the copy:
+            'dir_short', and performs the following on the copy:
               1. Removes illegal Windows characters from paths, 
                  including: <>:\"\\|?*
               2. Shortens all paths to a length that is acceptable on Windows, as specified by
@@ -736,7 +736,7 @@ def fix_paths(args, max_path_len_already_used):
 
     # Note: this also automatically fixes the symlinks by replacing them with real files. 
     print("\nCopying files to a new directory...")
-    shortened_dir = args.base_dir + "_shortened"
+    shortened_dir = args.base_dir + config.SHORT_DIR_SUFFIX
     broken_symlinks_list_of_tuples = copy_directory(args.base_dir, shortened_dir, args)
 
     paths_all_set, paths_to_fix_sorted_list, path_stats = walk_dir_and_exit_if_done(shortened_dir)
@@ -896,7 +896,7 @@ def fix_paths(args, max_path_len_already_used):
         while (path_len > config.MAX_ALLOWED_PATH_LEN 
                and allowed_segment_len > 0):
             i_column = i_last_column
-            # Use `> 0` so that we do NOT shorten the base dir; ex: "whatever_shortened/" 
+            # Use `> 0` so that we do NOT shorten the base dir; ex: "whatever_short/" 
             while i_column > 0:
                 # Shorten the segment in-place inside the paths_TO_list
                 path_len = shorten_segment_and_update_longest_namefiles_list(
@@ -1171,7 +1171,7 @@ def walk_dir_and_exit_if_done(dir_to_walk):
     all_paths_set = walk_directory(dir_to_walk)
     # pprint.pprint(all_paths_set)
     paths_to_fix_sorted_list, path_stats = get_paths_to_fix(
-        all_paths_set, max_path_len_already_used=len("_shortened"))
+        all_paths_set, max_path_len_already_used=len(config.SHORT_DIR_SUFFIX))
     path_stats.print()
     print()
 
@@ -1191,7 +1191,7 @@ def main():
 
     walk_dir_and_exit_if_done(args.base_dir)
 
-    output_dir = fix_paths(args, len("_shortened"))
+    output_dir = fix_paths(args, len(config.SHORT_DIR_SUFFIX))
 
     print(f"{colors.FGR}Completed successfully.{colors.END}")
     print(f"{colors.FGR}See the log files in \"{output_dir}\" for more details.{colors.END}")

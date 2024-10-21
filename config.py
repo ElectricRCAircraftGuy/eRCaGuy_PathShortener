@@ -35,6 +35,12 @@ HASH_PREFIX_FOR_SHORTENED = "@"
 # Ex: prefix of "#" --> "#ABCD" at the end of a fixed file or dir name. 
 HASH_PREFIX_FOR_ILLEGALS = "#"
 
+# Suffix to add to the output shortened directory name.
+# - To further shorten the output dir, use "_" instead of `_short`. 
+# - WARNING: NEVER use "" (empty string) as the suffix, as that (I haven't tested this yet though)
+#   may cause the program to overwrite the original files!
+SHORT_DIR_SUFFIX = "_short"  # Default: "_short".
+
 
 if __name__ == "__main__":
     print(f"WINDOWS_MAX_PATH_LEN:       {WINDOWS_MAX_PATH_LEN}")
