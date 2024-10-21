@@ -549,7 +549,7 @@ def hash_to_hex(input_string, hex_len):
 
 
 shorten_segment_call_cnt = 0
-def shorten_segment(i_row, i_column, 
+def shorten_segment(i_row, i_column,
                     paths_original_list, paths_FROM_list, 
                     paths_TO_list, paths_longest_namefiles_list, 
                     allowed_segment_len):
@@ -572,22 +572,39 @@ def shorten_segment(i_row, i_column,
     segment_long = paths_TO_list[i_row][i_column]
     path_TO = Path(segment_long)
 
-    stem_old = path_TO.stem        # ex: "some_file"
+    i_last_column = len(paths_TO_list[i_row]) - 1
+
+    is_dir = True
+    if i_column == i_last_column:
+        is_dir = paths.is_dir(paths_FROM_list[i_row])
+    
+    # Only files have stems; Ex: "file.txt" is in format "stem.suffix"
+    if not is_dir:
+        # For files        
+        stem_old = path_TO.stem        # ex: "some_file"
+    else:
+        # For directories
+        stem_old = str(path_TO)
+    
     stem_new = stem_old
 
-    HASH_LEN = config.HASH_LEN
-
     # NB: +1 for the char before the hash. Ex: "@abcd"
-    if len(stem_old) > allowed_segment_len + HASH_LEN + 1:  
+    if len(stem_old) > allowed_segment_len + config.HASH_LEN + 1:  
         # Hash the full original path to better ensure uniqueness
         full_path_original = str(Path(*(paths_original_list[i_row][0:i_column + 1])))
         # print(f"full_path_original: {full_path_original}")  # debugging
 
         # Shorten the stem
         stem_new = (stem_old[:allowed_segment_len] + config.HASH_PREFIX_FOR_SHORTENED 
-                    + hash_to_hex(full_path_original, HASH_LEN))
+                    + hash_to_hex(full_path_original, config.HASH_LEN))
     
-    segment_short = str(path_TO.with_stem(stem_new))
+    # Only files have stems; Ex: "file.txt" is in format "stem.suffix"
+    if not is_dir:
+        # For files
+        segment_short = str(path_TO.with_stem(stem_new))
+    else:
+        # For directories
+        segment_short = stem_new
 
     paths_TO_list[i_row][i_column] = segment_short
     paths_longest_namefiles_list[i_row][i_column] = segment_short
@@ -603,12 +620,9 @@ def shorten_segment(i_row, i_column,
     #    that is the namefile whose path will determine the max path length for this path
     #    shortening operation.
 
-    i_last_column = len(paths_TO_list[i_row]) - 1
     if i_column == i_last_column and (segment_short != segment_long or 
                                       segment_short != paths_original_list[i_row][i_column]):
         # We are at the right-most column, so also capture the namefile path into its list
-
-        is_dir = paths.is_dir(paths_FROM_list[i_row])
         namefile_path = paths.make_namefile_name(segment_short, is_dir)
         paths_longest_namefiles_list[i_row][i_column] = namefile_path
 
@@ -1012,9 +1026,9 @@ def fix_paths(args, max_path_len_already_used):
         colors.print_red("Saying again: Error: some paths are still too long after shortening.")
         colors.print_blue("As an intermedite work-around until I can fix this better, run "
             "this tool again on the shortened directory.")
-        colors.print_blue("OR use the `--keep_symlinks` flag to keep symlinks as symlinks, on the "
-            "first run, to avoid this issue until I can fix it properly.")
-        # TODO: gracefully handle this instead of exiting here.
+        # colors.print_blue("OR use the `--keep_symlinks` flag to keep symlinks as symlinks, on the "
+        #     "first run, to avoid this issue until I can fix it properly.")
+        colors.print_blue("TODO: gracefully handle this instead of exiting here.")
         colors.print_red("Exiting.")
         exit(EXIT_FAILURE)
 
