@@ -206,3 +206,6 @@ Sat. 19 Oct. 2024
 1. [x] Update the `test_paths` dir to force it to break there too. It appears to be a bug due to how I separate file stems from their extensions. I need to gracefully handle cases where there are many periods in the filename or folder name. 
 1. [x-fixed in bf14546] Or, possibly the problem is that I don't walk the copied dir, but rather, I walk the **pre-copied** dir? And yet once copied, the paths are much much different and longer since symlink dirs have now been copied as real dirs!?
 1. [x] Fix the bug. 
+
+Sun. 20 Oct. 2024
+1. [ ] If I want to add in logging of ALL output to a file in the future in an ignored `log/` dir in the repo, consider using my `Tee.py` library to do it. 

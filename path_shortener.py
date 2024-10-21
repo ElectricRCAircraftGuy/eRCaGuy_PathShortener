@@ -826,7 +826,7 @@ def fix_paths(args, max_path_len_already_used):
         path_len = paths.get_len(path_longest)
 
         # debugging
-        print(f"\nPath: {i_row:4}: {path_len:4}:       {path}")
+        colors.print_blue(f"\nPath: {i_row:4}: {path_len:4}:       {path}")
         print(f"  num_columns: {num_columns}")
         print(f"  i_last_column: {i_last_column}")
         print(f"  path_len: {path_len}")
@@ -1053,7 +1053,7 @@ def fix_paths(args, max_path_len_already_used):
     print()
 
     if len(paths_to_fix_sorted_list2) == 0:
-        print("Path fixing and shortening has been successful!\n"
+        colors.print_green("Path fixing and shortening has been successful!\n"
             + "All paths are now fixed for Windows (illegal chars removed, no symlinks, "
             + "and short enough).")    
     else:
