@@ -549,7 +549,7 @@ def hash_to_hex(input_string, hex_len):
 
 
 shorten_segment_call_cnt = 0
-def shorten_segment(i_row, i_column,
+def shorten_segment_and_update_longest_namefiles_list(i_row, i_column,
                     paths_original_list, paths_FROM_list, 
                     paths_TO_list, paths_longest_namefiles_list, 
                     allowed_segment_len):
@@ -625,6 +625,9 @@ def shorten_segment(i_row, i_column,
         # We are at the right-most column, so also capture the namefile path into its list
         namefile_path = paths.make_namefile_name(segment_short, is_dir)
         paths_longest_namefiles_list[i_row][i_column] = namefile_path
+
+        # debugging [ENABLE TO SHOW THE PATH SHORTENING TAKE PLACE]
+        # print(f"namefile_path: {namefile_path}")  
 
 
 def update_paths_in_list(paths_to_update_list, path, path_chunk_list_old, i_column):
@@ -831,7 +834,8 @@ def fix_paths(args, max_path_len_already_used):
                 # Windows characters. 
                 # - If the path was renamed, then it will need a namefile to store its original
                 #   name.
-                # - NB: nearly this same logic is also inside of `shorten_segment()`
+                # - NB: nearly this same logic is also inside of
+                #   `shorten_segment_and_update_longest_namefiles_list()`
                 if i_column == i_last_column: 
                     namefile_path = paths.make_namefile_name(path[i_column], is_dir)
                     paths_longest_namefiles_list[i_row][i_column] = namefile_path
@@ -850,30 +854,28 @@ def fix_paths(args, max_path_len_already_used):
         max_segment_len = max(len(segment) for segment in path)
         print(f"  max_segment_len: {max_segment_len}") # debugging
         allowed_segment_len = max_segment_len
-        path_len = paths.get_len(path_longest)
+        # Always run at least once in order to check namefiles for names that were fixed above
+        path_len = config.MAX_ALLOWED_PATH_LEN + 1  
         while (path_len > config.MAX_ALLOWED_PATH_LEN 
                and allowed_segment_len > 0):
             i_column = i_last_column
             # Use `> 0` so that we do NOT shorten the base dir; ex: "whatever_shortened/" 
             while i_column > 0:
-                # Shorten the path only if the path is still too long
+                # Shorten the segment in-place inside the paths_TO_list
+                shorten_segment_and_update_longest_namefiles_list(
+                    i_row, i_column,
+                    paths_original_list, paths_FROM_list, 
+                    paths_TO_list, paths_longest_namefiles_list, 
+                    allowed_segment_len)
                 
                 path_len = paths.get_len(path_longest)  # update
                 
                 if path_len <= config.MAX_ALLOWED_PATH_LEN:
                     break
 
-                # Shorten the segment in-place inside the paths_TO_list
-                shorten_segment(
-                    i_row, i_column,
-                    paths_original_list, paths_FROM_list, 
-                    paths_TO_list, paths_longest_namefiles_list, 
-                    allowed_segment_len)
-                
                 i_column -= 1
 
             allowed_segment_len -= 1
-            path_len = paths.get_len(path_longest)  # update
 
         # debugging
         print(f"  Original path:        {paths_original_list[i_row]}")
