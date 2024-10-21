@@ -24,11 +24,9 @@ MAX_ALLOWED_PATH_LEN = WINDOWS_MAX_PATH_LEN - PATH_LEN_ALREADY_USED
 ILLEGAL_WINDOWS_CHARS = "<>:\"\\|?*"  
 
 # Length of the hash to append to the end of a file name to make it unique.
-# - If you get name collisions when running this program, increase this number until they stop.
-HASH_LEN = 4      # Default: 4
-# Minimum hash length allowed if we must automatically reduce the hash length to further shorten the
-# paths in case they are still too long.
-HASH_LEN_MIN = 2  # Default: 2
+# - If you get name collisions when running this program, **increase this number** until they stop.
+# - If you need to shorten the path further, **decrease this number**.
+HASH_LEN = 3      # Default: 3
 
 # The character or string to prefix hashes in shortened paths. 
 # Ex: prefix of "@" --> "@ABCD" at the end of a shortened file or dir name. 
