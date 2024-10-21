@@ -891,25 +891,31 @@ def fix_paths(args, max_path_len_already_used):
         print(f"  max_segment_len: {max_segment_len}") # debugging
         allowed_segment_len = max_segment_len
         # Always run at least once in order to check namefiles for names that were fixed above
-        path_len = config.MAX_ALLOWED_PATH_LEN + 1  
-        while (path_len > config.MAX_ALLOWED_PATH_LEN 
-               and allowed_segment_len > 0):
-            i_column = i_last_column
-            # Use `> 0` so that we do NOT shorten the base dir; ex: "whatever_shortened/" 
-            while i_column > 0:
-                # Shorten the segment in-place inside the paths_TO_list
-                path_len = shorten_segment_and_update_longest_namefiles_list(
-                    i_row, i_column,
-                    paths_original_list, paths_FROM_list, 
-                    paths_TO_list, paths_longest_namefiles_list, 
-                    allowed_segment_len)
-                
-                if path_len <= config.MAX_ALLOWED_PATH_LEN:
-                    break
+        path_len = config.MAX_ALLOWED_PATH_LEN + 1
 
-                i_column -= 1
+        while (path_len > config.MAX_ALLOWED_PATH_LEN
+            and config.HASH_LEN >= config.HASH_LEN_MIN):
 
-            allowed_segment_len -= 1
+            while (path_len > config.MAX_ALLOWED_PATH_LEN 
+                and allowed_segment_len > 0):
+                i_column = i_last_column
+                # Use `> 0` so that we do NOT shorten the base dir; ex: "whatever_shortened/" 
+                while i_column > 0:
+                    # Shorten the segment in-place inside the paths_TO_list
+                    path_len = shorten_segment_and_update_longest_namefiles_list(
+                        i_row, i_column,
+                        paths_original_list, paths_FROM_list, 
+                        paths_TO_list, paths_longest_namefiles_list, 
+                        allowed_segment_len)
+                    
+                    if path_len <= config.MAX_ALLOWED_PATH_LEN:
+                        break
+
+                    i_column -= 1
+
+                allowed_segment_len -= 1
+            
+            config.HASH_LEN -= 1
 
         # debugging
         print(f"  Original path:        {paths_original_list[i_row]}")
@@ -917,7 +923,9 @@ def fix_paths(args, max_path_len_already_used):
         print(f"  TO (shortened) path:  {path}")
         
         if path_len > config.MAX_ALLOWED_PATH_LEN:
-            colors.print_red(f"Error: Path is still too long after shortening.")
+            colors.print_red(f"Error: Path is still too long after shortening.\n"
+                f"  Consider reducing `PATH_LEN_ALREADY_USED` in 'config.py' if you don't need "
+                f"to shorten the paths so much.")
             
             colors.print_red(f"  Original path:        {paths_original_list[i_row]}")
             colors.print_red(f"  FROM path:            {paths_FROM_list[i_row]}")
