@@ -607,8 +607,9 @@ def shorten_segment_and_update_longest_namefiles_list(i_row, i_column,
         segment_short = stem_new
 
     paths_TO_list[i_row][i_column] = segment_short
-    ############# AREAS TO FIX #############
-    paths_longest_namefiles_list[i_row][i_column] = segment_short
+
+    if i_column < len(paths_longest_namefiles_list[i_row]):
+        paths_longest_namefiles_list[i_row][i_column] = segment_short
 
     # debugging
     # print(f"\nallowed_segment_len: {allowed_segment_len}")
@@ -621,10 +622,6 @@ def shorten_segment_and_update_longest_namefiles_list(i_row, i_column,
     #    that is the namefile whose path will determine the max path length for this path
     #    shortening operation.
 
-    path_len_override = False
-    path_longest = paths_longest_namefiles_list[i_row]
-
-    ############# AREAS TO FIX #############
     if (segment_short != segment_long 
         or segment_short != paths_original_list[i_row][i_column]):
         # Recalculate the namefile for this segment, and compare it to the old namefile, and
@@ -637,23 +634,25 @@ def shorten_segment_and_update_longest_namefiles_list(i_row, i_column,
         if i_column == i_last_column:
             # We are at the right-most column, so also capture the namefile path into its list
             # at this column. 
-            paths_longest_namefiles_list[i_row][i_column] = namefile_path
+            if i_column < len(paths_longest_namefiles_list[i_row]):
+                paths_longest_namefiles_list[i_row][i_column] = namefile_path
         else:
             # We are in any other column, so let's construct a new total namefile path to this
             # column and compare it to the old one and keep whichever is longer.
-            len_old = paths.get_len(path_longest)
+            len_old = paths.get_len(paths_longest_namefiles_list[i_row])
 
-            namefile_full_path_new = paths_longest_namefiles_list[i_row][0:i_column + 1]
-            namefile_full_path_new[i_column] = namefile_path
+            i_right = min(i_column, len(paths_longest_namefiles_list[i_row]) - 1)
+            namefile_full_path_new = paths_longest_namefiles_list[i_row][0:i_right + 1]
+            namefile_full_path_new[i_right] = namefile_path
             len_new = paths.get_len(namefile_full_path_new)
 
             if len_new > len_old:
-                # TODO: come up with a test that will properly test this when I run 
-                # `./path_shortener_demo.sh`. Currently, I know this works just from testing it
-                # on some personal paths manually where the code failed until I did this.
+                # TODO: come up with a test that will properly test this when I run
+                # `./path_shortener_demo.sh`. Currently, I know this works just from testing it on
+                # some personal lawyer docs paths manually where the code failed until I did this.
                 
-                path_len_override = True
-                path_len = len_new
+                # Replace the normal namefile path with the new one since this one is longer
+                paths_longest_namefiles_list[i_row] = namefile_full_path_new
 
                 # debugging
                 colors.print_yellow("NOTE: USING NON-RIGHT-MOST-COLUMN NAMEFILE PATH since "
@@ -662,8 +661,7 @@ def shorten_segment_and_update_longest_namefiles_list(i_row, i_column,
                 print(f"len_new: {len_new}")
                 print(f"namefile_full_path_new: {namefile_full_path_new}")
 
-    if not path_len_override:
-        path_len = paths.get_len(path_longest)
+    path_len = paths.get_len(paths_longest_namefiles_list[i_row])
 
     return path_len
 
