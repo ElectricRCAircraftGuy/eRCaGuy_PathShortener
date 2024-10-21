@@ -854,17 +854,19 @@ def fix_paths(args, max_path_len_already_used):
                 if i_column == i_last_column:
                     is_dir = paths.is_dir(paths_FROM_list[i_row])  # will store False for files
 
+                hash_str = (config.HASH_PREFIX_FOR_ILLEGALS + 
+                            hash_to_hex(full_path_original, config.HASH_LEN))
+
                 if not is_dir: 
                     # It's a file, so handle stems (where "file.txt" is in format "stem.suffix")
                     stem_new = Path(name_new).stem
-                    stem_new += (config.HASH_PREFIX_FOR_ILLEGALS
-                                    + hash_to_hex(full_path_original, config.HASH_LEN))
+                    stem_new += hash_str
                     path_new = Path(name_new).with_stem(stem_new)
                     path[i_column] = str(path_new)
                 else:
                     # It's a directory, so even if it has periods in the dir name, it has no stems
                     # to handle!
-                    path[i_column] = name_new
+                    path[i_column] = name_new + hash_str
 
                 # Create a namefile for the right-most column if it was renamed to remove illegal 
                 # Windows characters. 
