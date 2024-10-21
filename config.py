@@ -26,7 +26,7 @@ ILLEGAL_WINDOWS_CHARS = "<>:\"\\|?*"
 # Length of the hash to append to the end of a file name to make it unique.
 # - If you get name collisions when running this program, **increase this number** until they stop.
 # - If you need to shorten the path further, **decrease this number**.
-HASH_LEN = 3      # Default: 3
+HASH_LEN = 3  # Default: 3
 
 # The character or string to prefix hashes in shortened paths. 
 # Ex: prefix of "@" --> "@ABCD" at the end of a shortened file or dir name. 

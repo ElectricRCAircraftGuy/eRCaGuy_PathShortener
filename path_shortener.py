@@ -918,10 +918,13 @@ def fix_paths(args, max_path_len_already_used):
         print(f"  TO (shortened) path:  {path}")
         
         if path_len > config.MAX_ALLOWED_PATH_LEN:
-            colors.print_red(f"Error: Path is still too long after shortening.\n"
-                f"  Consider reducing `PATH_LEN_ALREADY_USED` in 'config.py' if you don't need "
-                f"to shorten the paths so much. Or, decrease `HASH_LEN` to shorten the paths "
-                f"further.")
+            colors.print_red(f"Error: Path is still too long after shortening "
+                f"(path_len = {path_len}; config.MAX_ALLOWED_PATH_LEN = "
+                f"{config.MAX_ALLOWED_PATH_LEN}).")
+
+            colors.print_yellow(f"Potential fix: consider reducing `PATH_LEN_ALREADY_USED` "
+                f"in 'config.py' if you don't need to shorten the paths so much. Or, "
+                f"decrease `HASH_LEN` to shorten the paths further.")
             
             colors.print_red(f"  Original path:        {paths_original_list[i_row]}")
             colors.print_red(f"  FROM path:            {paths_FROM_list[i_row]}")
