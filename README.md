@@ -24,6 +24,7 @@ This allows you to easily send documents and zipped up folders from your Linux c
 1. Removes illegal Windows characters from paths, including: `<>:"\|?*`.
 1. Shortens all paths to a length that is acceptable on Windows, as specified by you inside of `config.py`.
 1. Copies symlinks as files, so they are not broken on Windows.
+    1. NB: if you running `path_shortener` on a git repo, it is recommended that you use the `--keep_symlinks` to _not_ do this part, as you probably want to keep the symlinks in the repo rather than duplicate their contents. 
 
 _As a safety rule, back up your original directory into a new location before running this program. I am not responsible for data loss._
 
@@ -62,7 +63,13 @@ _As a safety rule, back up your original directory into a new location before ru
 
 1. Run `path_shortener` on the directory you want to send to Windows:
     ```bash
+    # Run the full program if you want to copy/paste an entire dir from Linux to Windows, or 
+    # zip it up and move it from Linux to Windows. 
     path_shortener path/to/your/directory
+    
+    # If you are shortening and fixing paths in a git repository, you probably want to keep 
+    # symlinks as symlinks rather than copying their contents, so use the `--keep_symlinks` option.
+    path_shortener --keep_symlinks path/to/your/github_repository
     ```
 
 1. Zip up `path/to/your/directory_short` and send it over! You have now ensured that they have copies of good files instead of symlinks or broken symlinks, and that all paths are short enough and contain no illegal Windows characters.
