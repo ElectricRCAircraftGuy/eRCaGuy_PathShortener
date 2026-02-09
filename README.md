@@ -63,12 +63,11 @@ _As a safety rule, back up your original directory into a new location before ru
 
 1. Run `path_shortener` on the directory you want to send to Windows:
     ```bash
-    # Run the full program if you want to copy/paste an entire dir from Linux to Windows, or 
-    # zip it up and move it from Linux to Windows. 
+    # For normal copy-pasting from Linux to Windows.  
     path_shortener path/to/your/directory
     
-    # If you are shortening and fixing paths in a git repository, you probably want to keep 
-    # symlinks as symlinks rather than copying their contents, so use the `--keep_symlinks` option.
+    # For fixing git repos to be used on both Linux and Windows, you probably want to 
+    # use the `--keep_symlinks` option to keep symlinks as symlinks in the repo. 
     path_shortener --keep_symlinks path/to/your/github_repository
     ```
 
